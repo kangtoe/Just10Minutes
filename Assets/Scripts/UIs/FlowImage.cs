@@ -22,11 +22,22 @@ public class FlowImage : MonoBehaviour
     private void Start()
     {
         image = GetComponent<Image>();
-        InstancedMaterial = image.material;                
+        // 공유 머티리얼을 수정하지 않도록 새 인스턴스 생성
+        InstancedMaterial = new Material(image.material);
+        image.material = InstancedMaterial;
     }
 
     private void Update()
     {
         InstancedMaterial.mainTextureOffset += new Vector2(xSpeed * Time.deltaTime, ySpeed * Time.deltaTime);
+    }
+
+    private void OnDestroy()
+    {
+        // 메모리 누수 방지
+        if (InstancedMaterial != null)
+        {
+            Destroy(InstancedMaterial);
+        }
     }
 }
