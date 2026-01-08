@@ -9,13 +9,10 @@ public class UiManager : MonoSingleton<UiManager>
     [SerializeField] RectTransform root;
 
     [Header("combat ui")]
-    [SerializeField] Crosshair crosshair;
-
     [SerializeField] Text scoreText;
     [SerializeField] Text timeRecordText;
     [SerializeField] Text healthPercentText;
     [SerializeField] Image healthGauge;
-    [SerializeField] Image heatGauge;
     [SerializeField] Text levelText;
     [SerializeField] Image expGage;
 
@@ -58,17 +55,6 @@ public class UiManager : MonoSingleton<UiManager>
     private void Start()
     {
         onHelp = helpText.gameObject.activeSelf;
-    }
-
-    public void SetCursorSpread(float ratio)
-    {
-        crosshair.SetArrSpreadRatio(ratio);
-    }
-
-    public void SetHeatText(float ratio)
-    {
-        heatGauge.fillAmount = ratio;
-        heatGauge.color = Color.Lerp(Color.yellow, Color.red, ratio);
     }
 
     public void SetScoreText(int score)
@@ -164,7 +150,6 @@ public class UiManager : MonoSingleton<UiManager>
     public void ToggleCustomCursor(bool active)
     {
         Cursor.visible = !active;
-        crosshair.gameObject.SetActive(active);
     }
 
     public void CreateText(string str, bool onMousePos = false)

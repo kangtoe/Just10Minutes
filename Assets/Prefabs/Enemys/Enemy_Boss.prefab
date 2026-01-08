@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2726149016502284050}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: backFirePoint2
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5154819508379834527}
   - component: {fileID: 5482654831075711373}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: Left
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -112,7 +112,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1221355009915637482}
   - component: {fileID: 6733864546874148806}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: Right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -182,7 +182,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7917242162084884319}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: factorySpawnPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -213,7 +213,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7285785190373103177}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: leftfirePoint1
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -245,7 +245,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9040334029074034677}
   - component: {fileID: 2165748765183678913}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: mainFirePoint
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -312,7 +312,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 954150485788155811}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: leftfirePoint3
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -343,7 +343,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8976867984832708706}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: leftfirePoint2
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -374,7 +374,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2689320437195575463}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: rightFirePoint2
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -405,7 +405,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8580626944374058659}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: backFirePoint1
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -444,7 +444,7 @@ GameObject:
   - component: {fileID: 2902183979011940903}
   - component: {fileID: 3229148728370288071}
   - component: {fileID: 5106826427597479639}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: Enemy_Boss
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -469,7 +469,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &1255662411283985023
 Rigidbody2D:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -480,8 +480,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 100
-  m_LinearDrag: 1
-  m_AngularDrag: 1
+  m_LinearDamping: 1
+  m_AngularDamping: 1
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -507,6 +507,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   point: 1000
+  upgradePoint: 0
   desc: 
 --- !u!114 &8950394230297457306
 MonoBehaviour:
@@ -562,7 +563,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 0
   searchRaduius: 20
   anglePriority: 0
   findAlways: 0
@@ -626,7 +627,7 @@ GameObject:
   - component: {fileID: 9021927663771175908}
   - component: {fileID: 6577868478953260536}
   - component: {fileID: 1199455950555569154}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -656,6 +657,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6577868478953260536
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -671,6 +673,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -692,9 +699,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: -890350821, guid: 471336ef835343146bb5bf58dc4c0de3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -704,7 +713,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!60 &1199455950555569154
 PolygonCollider2D:
@@ -714,6 +722,7 @@ PolygonCollider2D:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7217426091672029230}
   m_Enabled: 1
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -737,7 +746,8 @@ PolygonCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
@@ -790,7 +800,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3840335886205950850}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: rightFirePoint3
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -822,7 +832,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4081122361897898452}
   - component: {fileID: 569163970021404415}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: Back
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -890,7 +900,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7907041170920822515}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: rightFirePoint1
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
@@ -924,9 +934,17 @@ PrefabInstance:
       propertyPath: InitialModule.startSize.scalar
       value: 0.6
       objectReference: {fileID: 0}
+    - target: {fileID: 3936724692388356963, guid: 4f4f38af04f8c9b498321d82a13a1787, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 3936724693173615676, guid: 4f4f38af04f8c9b498321d82a13a1787, type: 3}
       propertyPath: m_Name
       value: Flame_grey
+      objectReference: {fileID: 0}
+    - target: {fileID: 3936724693173615676, guid: 4f4f38af04f8c9b498321d82a13a1787, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 3936724693173615679, guid: 4f4f38af04f8c9b498321d82a13a1787, type: 3}
       propertyPath: m_LocalPosition.x
@@ -975,6 +993,10 @@ PrefabInstance:
     - target: {fileID: 3936724694277787584, guid: 4f4f38af04f8c9b498321d82a13a1787, type: 3}
       propertyPath: InitialModule.startLifetime.scalar
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3936724694277787591, guid: 4f4f38af04f8c9b498321d82a13a1787, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
