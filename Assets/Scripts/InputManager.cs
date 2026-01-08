@@ -1,29 +1,40 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-
+using UnityEngine.InputSystem;
 
 public class InputManager : MonoSingleton<InputManager>
-{    
-    public bool MoveForwardInput => false;
+{
+    InputSystem_Actions inputActions;
 
-    Vector2 moveDirectionVec = new Vector2();
-    public Vector2 MoveDirectionInput{
-        get {
-            moveDirectionVec.x = Input.GetAxisRaw("Horizontal");
-            moveDirectionVec.y = Input.GetAxisRaw("Vertical");
-            return moveDirectionVec;
-        } 
+    void Awake()
+    {
+        inputActions = new InputSystem_Actions();
     }
 
-    public bool BrakeInput => false;
+    void OnEnable()
+    {
+        inputActions.Enable();
+    }
 
-    public bool FireInput => Input.GetMouseButton(0);
+    void OnDisable()
+    {
+        inputActions.Disable();
+    }
 
-    public bool HelpInput => Input.GetKeyDown(KeyCode.H);
-    public bool UpgradeInput => Input.GetKeyDown(KeyCode.U);
-    public bool EscapeInput => Input.GetKeyDown(KeyCode.Escape);
+    // Player Controls
+    public Vector2 MoveDirectionInput => inputActions.Player.Move.ReadValue<Vector2>();
+    public float RotateInput => inputActions.Player.Rotate.ReadValue<float>();
+    public bool FireInput => inputActions.Player.Fire.IsPressed();
+    public bool PauseInput => inputActions.Player.Pause.WasPressedThisFrame();
+    public bool EscapeInput => inputActions.Player.Pause.WasPressedThisFrame();  // Alias for PauseInput
 
-    public bool RInput => Input.GetKeyDown(KeyCode.R);
+    // Legacy properties for backward compatibility (deprecated)
+    public bool MoveForwardInput => false;  // Auto-forward will be implemented
+    public bool BrakeInput => false;  // No longer used
+
+    // Debug/Test inputs
+    public bool HelpInput => Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame;
+    public bool UpgradeInput => Keyboard.current != null && Keyboard.current.uKey.wasPressedThisFrame;
+    public bool RInput => Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame;
 }

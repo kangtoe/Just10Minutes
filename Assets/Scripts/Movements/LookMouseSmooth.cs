@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class LookMouseSmooth : MonoBehaviour
 {
@@ -20,7 +21,10 @@ public class LookMouseSmooth : MonoBehaviour
 
     Vector3 GetMouseWorldPos()
     {
-        Vector3 mouseScreenPos = Input.mousePosition;
+        if (Mouse.current == null)
+            return Vector3.zero;
+
+        Vector3 mouseScreenPos = Mouse.current.position.ReadValue();
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
 
         return worldPos;

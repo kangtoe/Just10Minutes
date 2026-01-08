@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -171,9 +172,9 @@ public class UiManager : MonoSingleton<UiManager>
         Text txt = Instantiate(floatingText, floatTextRoot).GetComponent<Text>();
         txt.text = str;
 
-        if (onMousePos)
+        if (onMousePos && Mouse.current != null)
         {
-            txt.rectTransform.position = Input.mousePosition;
+            txt.rectTransform.position = Mouse.current.position.ReadValue();
         }
     }
 

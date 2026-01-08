@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class MouseFollow : MonoBehaviour
 {
@@ -12,7 +13,10 @@ public class MouseFollow : MonoBehaviour
     }
 
     void Update()
-    {            
-        rectTransform.position = Input.mousePosition;
+    {
+        if (Mouse.current != null)
+        {
+            rectTransform.position = Mouse.current.position.ReadValue();
+        }
     }
 }
