@@ -16,13 +16,19 @@ public class PlayerShip : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        UpdateHealthUI();        
+        UpdateDurabilityUI();
 
         damageable.onDamaged.AddListener(delegate
         {
-            UpdateHealthUI();
+            UpdateDurabilityUI();
             UiManager.Instance.ShakeUI();
         });
+
+        damageable.onShieldDamaged.AddListener(delegate
+        {
+            UpdateDurabilityUI();
+        });
+
         damageable.onDead.AddListener(delegate
         {
             GameManager.Instance.GameOver();
@@ -34,32 +40,50 @@ public class PlayerShip : MonoBehaviour
     }
 
 
-    void UpdateHealthUI()
+    void UpdateDurabilityUI()
     {
-        int curr = (int)damageable.CurrHealth;
-        int max = (int)damageable.MaxHealth;
-        UiManager.Instance.SetHealthUI(curr, max);
+        float currDurability = damageable.CurrDurability;
+        float maxDurability = damageable.MaxDurability;
+        float currShield = damageable.CurrShield;
+        float maxShield = damageable.MaxShield;
+
+        UiManager.Instance.SetDurabilityAndShieldUI(currDurability, maxDurability, currShield, maxShield);
     }
 
     public void InitShip(bool stackFull = false)
     {
         if(stackFull) UiManager.Instance.CreateText("Restore All!", transform.position);
 
-        damageable.InitHealth();
-        UpdateHealthUI();
+        damageable.InitDurability();
+        UpdateDurabilityUI();
     }
 
     public void SetSystem(UpgradeField _type, float amount)
     {
         switch (_type)
         {
-            case UpgradeField.Shield:
-                damageable.SetMaxHealth(amount * 100, true);
-                UpdateHealthUI();
+            // 생존
+            case UpgradeField.MaxDurability:
+                damageable.SetMaxDurability(amount, true);
+                UpdateDurabilityUI();
                 break;
+            case UpgradeField.MaxShield:
+                damageable.SetMaxShield(amount, true);
+                UpdateDurabilityUI();
+                break;
+            case UpgradeField.ShieldRegenRate:
+                damageable.SetShieldRegenRate(amount);
+                break;
+            case UpgradeField.ShieldRegenDelay:
+                damageable.SetShieldRegenDelay(amount);
+                break;
+
+            // 충돌
             case UpgradeField.OnImpact:
-                impactable.SetDamageAmount(amount * 100);
+                impactable.SetDamageAmount(amount);
                 break;
+
+            // 사격
             case UpgradeField.MultiShot:
                 shooter.SetMultiShot((int)amount);
                 break;

@@ -36,12 +36,23 @@ public enum UpgradeType
 
 public enum UpgradeField
 {
-    Shield,
-    OnImpact,
-    MultiShot,
-    Heat,
-    Missle,
-    ReloadTime,
-    Damage,
-    ChargeTime
+    // 생존
+    MaxDurability,    // 최대 내구도
+    MaxShield,        // 최대 실드
+    ShieldRegenRate,  // 실드 재생 속도
+    ShieldRegenDelay, // 실드 재생 지연 (감소)
+
+    // 사격
+    FireRate,         // 연사 속도 (fireDelay 감소)
+    ProjectileDamage, // 발사체 피해
+    ProjectileSpeed,  // 발사체 속도
+    MultiShot,        // 멀티샷
+
+    // 충돌
+    OnImpact,         // 충돌 피해 (공격)
+    ImpactResist,     // 충돌 피해 (자신) 감소
+
+    // 이동
+    MoveSpeed,        // 이동 속도
+    RotateSpeed,      // 회전 속도
 }

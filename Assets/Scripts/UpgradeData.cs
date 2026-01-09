@@ -21,17 +21,16 @@ public static class UpgradeData
 
     static Dictionary<UpgradeField, float[]> Datas = new()
     {
-        { UpgradeField.Shield,      new float[6] { 2,       2,       3,      4,      5,      6       } },
-        { UpgradeField.OnImpact,    new float[6] { 1,       1,       0.75f,  0.75f,  0.5f,   0.5f    } },
+        { UpgradeField.MaxDurability, new float[6] { 100,    150,     200,    250,    300,    350     } },
+        { UpgradeField.MaxShield,     new float[6] { 100,    150,     200,    250,    300,    350     } },
+        { UpgradeField.OnImpact,      new float[6] { 10,     15,      20,     25,     30,     35      } },
+        { UpgradeField.MultiShot,     new float[6] { 1,      2,       2,      3,      3,      4       } },
 
-        { UpgradeField.MultiShot,   new float[6] { 2,       2,       3,      3,      4,      4       } },
-        { UpgradeField.Heat,        new float[6] { 4,       4,       4,      3,      3,      2       } },
-
-        { UpgradeField.Missle,      new float[6] { 0,       2,       3,      4,      5,      6       } },
-        { UpgradeField.ReloadTime,  new float[6] { 2,       2,       1.75f,  1.5f,   1.25f,  1f      } },
-
-        { UpgradeField.Damage,      new float[6] { 0,       50,      50,     75,     75,     100     } },
-        { UpgradeField.ChargeTime,  new float[6] { 30,      30,      25,     20,     15,     10      } },
+        // TODO: 미구현 시스템 (Missle, Pulse)
+        // { UpgradeField.Missle,      new float[6] { 0,       2,       3,      4,      5,      6       } },
+        // { UpgradeField.ReloadTime,  new float[6] { 2,       2,       1.75f,  1.5f,   1.25f,  1f      } },
+        // { UpgradeField.Damage,      new float[6] { 0,       50,      50,     75,     75,     100     } },
+        // { UpgradeField.ChargeTime,  new float[6] { 30,      30,      25,     20,     15,     10      } },
     };
 
     public static UpgradeField[] GetRalatedFields(UpgradeType _type)
@@ -39,13 +38,13 @@ public static class UpgradeData
         switch (_type)
         {
             case UpgradeType.Ship:
-                return new UpgradeField[] { UpgradeField.Shield }; //, UpgradeField.OnImpact };
+                return new UpgradeField[] { UpgradeField.MaxDurability, UpgradeField.MaxShield, UpgradeField.OnImpact };
             case UpgradeType.Shooter:
-                return new UpgradeField[] { UpgradeField.MultiShot, UpgradeField.Heat };
+                return new UpgradeField[] { UpgradeField.MultiShot };
             case UpgradeType.Missle:
-                return new UpgradeField[] { UpgradeField.Missle, UpgradeField.ReloadTime };
+                return new UpgradeField[] { }; // TODO: Missle 시스템 미구현
             case UpgradeType.Pulse:
-                return new UpgradeField[] { UpgradeField.ChargeTime}; //{ UpgradeField.Damage, UpgradeField.ChargeTime}
+                return new UpgradeField[] { }; // TODO: Pulse 시스템 미구현
 
             default:
                 return null;

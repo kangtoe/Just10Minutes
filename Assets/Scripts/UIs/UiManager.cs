@@ -11,8 +11,10 @@ public class UiManager : MonoSingleton<UiManager>
     [Header("combat ui")]
     [SerializeField] Text scoreText;
     [SerializeField] Text timeRecordText;
-    [SerializeField] Text healthPercentText;
-    [SerializeField] Image healthGauge;
+    [SerializeField] Text durabilityPercentText;
+    [SerializeField] Image durabilityGauge;
+    [SerializeField] Text shieldPercentText;
+    [SerializeField] Image shieldGauge;
     [SerializeField] Text levelText;
     [SerializeField] Image expGage;
 
@@ -72,10 +74,33 @@ public class UiManager : MonoSingleton<UiManager>
         overTimeText.text = str;
     }
 
-    public void SetHealthUI(int currHealth, int maxHealth)
+    public void SetDurabilityUI(int currDurability, int maxDurability)
     {
-        healthPercentText.text = Mathf.Floor((float)currHealth / maxHealth * 100) + "%";
-        healthGauge.fillAmount = (float)currHealth / maxHealth;
+        durabilityPercentText.text = Mathf.Floor((float)currDurability / maxDurability * 100) + "%";
+        durabilityGauge.fillAmount = (float)currDurability / maxDurability;
+    }
+
+    public void SetShieldUI(float currShield, float maxShield)
+    {
+        if (shieldGauge != null)
+        {
+            shieldGauge.fillAmount = maxShield > 0 ? currShield / maxShield : 0;
+        }
+
+        if (shieldPercentText != null)
+        {
+            shieldPercentText.text = maxShield > 0 ? Mathf.Floor(currShield / maxShield * 100) + "%" : "0%";
+        }
+    }
+
+    public void SetDurabilityAndShieldUI(float currDurability, float maxDurability, float currShield, float maxShield)
+    {
+        // 내구도
+        durabilityPercentText.text = Mathf.Floor(currDurability / maxDurability * 100) + "%";
+        durabilityGauge.fillAmount = currDurability / maxDurability;
+
+        // 실드
+        SetShieldUI(currShield, maxShield);
     }
 
     public void SetCanvas(GameState state)
