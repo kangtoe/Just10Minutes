@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
 
 ### 2. Object Pooling 패턴
 
-**필수 적용 대상:**
+**권장 적용 대상:**
 - 적 오브젝트
 - 총알/발사체
 - 파티클 이펙트
@@ -134,6 +134,103 @@ EnemyManager.Instance;
 ### 업그레이드 시스템
 - ScriptableObject 기반 데이터 구조 사용 권장
 - 업그레이드 효과는 모듈화하여 조합 가능하게 설계
+
+## 중요: 디버깅 원칙
+
+### 1. 에러를 숨기지 말고 즉시 드러내기 ⚠️
+
+**절대 금지:**
+```csharp
+// ❌ BAD - 방어적 null check로 버그를 숨김
+if (singleton != null && singleton.Instance != null)
+{
+    singleton.Instance.DoSomething();
+}
+
+// ❌ BAD - 조용히 실패
+if (component == null) return;
+if (uiElement == null) return;
+```
+
+**올바른 방식:**
+```csharp
+// ✅ GOOD - 에러가 즉시 발생 (null이면 NullReferenceException)
+singleton.Instance.DoSomething();
+
+// ✅ GOOD - 명시적 에러 로그
+if (component == null)
+{
+    Debug.LogError($"Component is null on {gameObject.name}!", this);
+    return;
+}
+```
+
+**이유:** 방어적 코딩은 버그를 숨기고 디버깅을 어렵게 만듭니다. 문제가 발생하면 즉시 명확한 에러를 내야 합니다.
+
+### 2. 명확한 초기화 순서 확립 ⚠️
+
+**절대 금지:**
+```csharp
+// ❌ BAD - Awake/Start 실행 순서에 의존
+void Awake()
+{
+    // 다른 컴포넌트가 초기화되었다고 가정
+    value = otherComponent.GetValue();
+}
+
+// ❌ BAD - 개별적으로 Awake에서 초기화
+void Awake()
+{
+    // 각 컴포넌트가 독립적으로 초기화
+    // 초기화 순서를 통제할 수 없음
+    InitializeMyself();
+}
+```
+
+**올바른 방식:**
+```csharp
+// ✅ GOOD - 명시적 Initialize 메소드 + 명확한 호출 순서
+public void Initialize()
+{
+    // 외부에서 명시적으로 호출되어야 함
+    value = CalculateValue();
+}
+
+// ✅ GOOD - 상위 컴포넌트에서 순서 제어
+void Start()
+{
+    // 1. 먼저 자식 컴포넌트들 초기화
+    childComponent1.Initialize();
+    childComponent2.Initialize();
+
+    // 2. 그 다음 자신 초기화
+    Initialize();
+}
+```
+
+**계층적 초기화 예시:**
+```csharp
+// Manager가 최상위에서 초기화 순서 제어
+public class GameManager : MonoBehaviour
+{
+    void Start()
+    {
+        // 1. UI 초기화
+        UiManager.Instance.Initialize();
+
+        // 2. 플레이어 초기화 (UI에 의존)
+        PlayerShip.Instance.Initialize();
+
+        // 3. 게임 시작
+        StartGame();
+    }
+}
+```
+
+**이유:**
+- Awake/Start 실행 순서는 Unity가 결정하므로 통제 불가능
+- 각 컴포넌트가 독립적으로 Awake에서 초기화하면 의존성 문제 발생
+- 명확한 초기화 순서를 상위 레벨에서 제어해야 디버깅 가능
 
 ## 참고 자료
 
