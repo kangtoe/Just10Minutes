@@ -10,13 +10,14 @@ public class PlayerShip : MonoBehaviour
     [SerializeField] Impactable impactable;
     [SerializeField] Damageable damageable;
 
+    public Damageable Damageable => damageable;
+
     // MoveStandard와 RotateByInput 컴포넌트가 자동으로 이동/회전 처리
     // ShooterBase 컴포넌트가 자동으로 사격 처리
-
     // Start is called before the first frame update
     void Start()
     {
-        UpdateDurabilityUI();
+        Initialize();
 
         damageable.onDamaged.AddListener(delegate
         {
@@ -38,6 +39,22 @@ public class PlayerShip : MonoBehaviour
             UiManager.Instance.CreateText("Level Up!", transform.position);
         });
     }
+
+    // PlayerShip 초기화
+    public void Initialize()
+    {
+        // 1. PlayerShip의 컴포넌트들을 PlayerStats 참조 모드로 초기화
+        damageable.Initialize(true);  // PlayerStats 기반으로 최대 체력/실드 설정
+        shooter.TogglePlayerStatsReference(true);
+        impactable.TogglePlayerStatsReference(true);
+
+        // 2. UI 게이지 초기화
+        UiManager.Instance.InitializeDurabilityUI();
+
+        // 3. 초기 UI 갱신
+        UpdateDurabilityUI();
+    }
+
 
 
     void UpdateDurabilityUI()
@@ -89,4 +106,5 @@ public class PlayerShip : MonoBehaviour
                 break;
         }
     }
+
 }

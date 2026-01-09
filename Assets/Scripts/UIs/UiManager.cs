@@ -11,10 +11,8 @@ public class UiManager : MonoSingleton<UiManager>
     [Header("combat ui")]
     [SerializeField] Text scoreText;
     [SerializeField] Text timeRecordText;
-    [SerializeField] Text durabilityPercentText;
-    [SerializeField] Image durabilityGauge;
-    [SerializeField] Text shieldPercentText;
-    [SerializeField] Image shieldGauge;
+    [SerializeField] DynamicGauge durabilityGauge;  // 내구도 게이지
+    [SerializeField] DynamicGauge shieldGauge;      // 실드 게이지
     [SerializeField] Text levelText;
     [SerializeField] Image expGage;
 
@@ -54,6 +52,13 @@ public class UiManager : MonoSingleton<UiManager>
     public bool OnHelp => onHelp;
     bool onHelp;
 
+    // 내구도/실드 UI 초기화 (PlayerShip에서 호출)
+    public void InitializeDurabilityUI()
+    {                        
+        durabilityGauge.Initialize();        
+        shieldGauge.Initialize();
+    }
+
     private void Start()
     {
         onHelp = helpText.gameObject.activeSelf;
@@ -74,33 +79,10 @@ public class UiManager : MonoSingleton<UiManager>
         overTimeText.text = str;
     }
 
-    public void SetDurabilityUI(int currDurability, int maxDurability)
-    {
-        durabilityPercentText.text = Mathf.Floor((float)currDurability / maxDurability * 100) + "%";
-        durabilityGauge.fillAmount = (float)currDurability / maxDurability;
-    }
-
-    public void SetShieldUI(float currShield, float maxShield)
-    {
-        if (shieldGauge != null)
-        {
-            shieldGauge.fillAmount = maxShield > 0 ? currShield / maxShield : 0;
-        }
-
-        if (shieldPercentText != null)
-        {
-            shieldPercentText.text = maxShield > 0 ? Mathf.Floor(currShield / maxShield * 100) + "%" : "0%";
-        }
-    }
-
     public void SetDurabilityAndShieldUI(float currDurability, float maxDurability, float currShield, float maxShield)
     {
-        // 내구도
-        durabilityPercentText.text = Mathf.Floor(currDurability / maxDurability * 100) + "%";
-        durabilityGauge.fillAmount = currDurability / maxDurability;
-
-        // 실드
-        SetShieldUI(currShield, maxShield);
+        durabilityGauge.UpdateGauge(currDurability, maxDurability);
+        shieldGauge.UpdateGauge(currShield, maxShield);            
     }
 
     public void SetCanvas(GameState state)

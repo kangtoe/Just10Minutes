@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -19,13 +20,18 @@ public class Damageable : MonoBehaviour
     [HideInInspector]
     public UnityEvent onShieldDepleted = new UnityEvent();
 
+    // PlayerStats 싱글톤에서 스탯 참조 여부 (플레이어용: true, 적용: false)
+    bool usePlayerStats = false;
+
     [Header("Durability")]
-    [SerializeField] float maxDurability = 100;
-    [SerializeField] float? currDurability = null;
+    [SerializeField, ReadOnly] float maxDurability = 100;
+    [SerializeField, ReadOnly] float currDurability;
+    [SerializeField] float durabilityRegenRate = 0f;  // 초당 재생량 (기본값 0 = 재생 없음)
+    [SerializeField] float durabilityRegenDelay = 5f;  // 피해 후 재생 시작까지 지연
 
     [Header("Shield")]
-    [SerializeField] float maxShield = 100;
-    [SerializeField] float? currShield = null;
+    [SerializeField, ReadOnly] float maxShield = 100;
+    [SerializeField, ReadOnly] float currShield;
     [SerializeField] float shieldRegenRate = 20f;  // 초당 재생량
     [SerializeField] float shieldRegenDelay = 2f;  // 피해 후 재생 시작까지 지연
 
@@ -34,55 +40,91 @@ public class Damageable : MonoBehaviour
     public AudioClip hitSound;
     public AudioClip shieldHitSound;
 
-    public float MaxDurability => maxDurability;
-    public float CurrDurability
-    {
-        get{
-            if (currDurability == null) currDurability = maxDurability;
-            return currDurability.Value;
-        }
-    }
+    public float MaxDurability => usePlayerStats ? PlayerStats.Instance.maxDurability : maxDurability;
+    public float CurrDurability => currDurability;
+    float DurabilityRegenRate => usePlayerStats ? PlayerStats.Instance.durabilityRegenRate : durabilityRegenRate;
+    float DurabilityRegenDelay => usePlayerStats ? PlayerStats.Instance.durabilityRegenDelay : durabilityRegenDelay;
 
-    public float MaxShield => maxShield;
-    public float CurrShield
-    {
-        get{
-            if (currShield == null) currShield = maxShield;
-            return currShield.Value;
-        }
-    }
+    public float MaxShield => usePlayerStats ? PlayerStats.Instance.maxShield : maxShield;
+    public float CurrShield => currShield;
+    float ShieldRegenRate => usePlayerStats ? PlayerStats.Instance.shieldRegenRate : shieldRegenRate;
+    float ShieldRegenDelay => usePlayerStats ? PlayerStats.Instance.shieldRegenDelay : shieldRegenDelay;
 
     bool isDead;
     public bool IsDead => isDead;
 
     float lastDamageTime;
-    Coroutine shieldRegenCoroutine;
 
 
-    // Start is called before the first frame update
     protected void Start()
     {
         // 사망 시 이벤트 체인 등록
-        // TODO :
-        // 플레이어 기체 파괴시 게임 오버 함수 추가 등록
+        onDead.AddListener(delegate {
+            if (diePrefab)
+            {
+                Instantiate(diePrefab, transform.position, diePrefab.transform.rotation);
+            }
+            Destroy(gameObject);
+        });
+    }
+
+    void Update()
+    {
+        if (isDead) return;
+
+        // 내구도 재생
+        if (currDurability < MaxDurability && DurabilityRegenRate > 0)
         {
-            onDead.AddListener(delegate {
-                //Debug.Log("onDeadLocal");
-
-
-                if (diePrefab)
-                {
-                    Instantiate(diePrefab, transform.position, diePrefab.transform.rotation);
-                }
-
-                Destroy(gameObject);
-            });
+            if (Time.time - lastDamageTime >= DurabilityRegenDelay)
+            {
+                float regenAmount = DurabilityRegenRate * Time.deltaTime;
+                ModifyDurability(regenAmount);
+            }
         }
 
-        // 실드 재생 코루틴 시작
-        if (maxShield > 0)
+        // 실드 재생
+        if (currShield < MaxShield && MaxShield > 0)
         {
-            shieldRegenCoroutine = StartCoroutine(ShieldRegenCoroutine());
+            if (Time.time - lastDamageTime >= ShieldRegenDelay)
+            {
+                float regenAmount = ShieldRegenRate * Time.deltaTime;
+                ModifyShield(regenAmount);
+            }
+        }
+    }
+
+    // 실드 증감 (양수: 증가, 음수: 감소)
+    public void ModifyShield(float amount)
+    {
+        if (isDead) return;
+
+        currShield += amount;
+        currShield = Mathf.Clamp(currShield, 0, MaxShield);
+
+        // 실드 소진 이벤트
+        if (currShield == 0)
+        {
+            onShieldDepleted.Invoke();
+        }
+
+        onShieldDamaged.Invoke();
+    }
+
+    // 내구도 증감 (양수: 증가, 음수: 감소)
+    public void ModifyDurability(float amount)
+    {
+        if (isDead) return;
+
+        currDurability += amount;
+        currDurability = Mathf.Clamp(currDurability, 0, MaxDurability);
+
+        onDamaged.Invoke();
+
+        // 사망 체크
+        if (currDurability == 0)
+        {
+            isDead = true;
+            onDead.Invoke();
         }
     }
 
@@ -95,62 +137,30 @@ public class Damageable : MonoBehaviour
         // 실드가 먼저 피해를 받음
         if (currShield > 0)
         {
-            float shieldDamage = Mathf.Min(CurrShield, remainingDamage);
-            currShield = CurrShield - shieldDamage;
-            if (currShield < 0) currShield = 0;
+            float shieldDamage = Mathf.Min(currShield, remainingDamage);
+            ModifyShield(-shieldDamage);
 
             remainingDamage -= shieldDamage;
             lastDamageTime = Time.time;
 
-            onShieldDamaged.Invoke();
             SoundManager.Instance.PlaySound(shieldHitSound ? shieldHitSound : hitSound);
-
-            // 실드 소진 이벤트
-            if (currShield == 0)
-            {
-                onShieldDepleted.Invoke();
-            }
 
             // 실드만 피해받고 내구도는 안전하면 return
             if (remainingDamage <= 0) return;
         }
 
         // 남은 피해를 내구도에 적용
-        currDurability = CurrDurability - remainingDamage;
-        if (currDurability < 0) currDurability = 0;
-        onDamaged.Invoke();
+        ModifyDurability(-remainingDamage);
+        lastDamageTime = Time.time;
 
-        // 사망 체크
-        if (currDurability == 0)
+        // 사망 시 사망 사운드, 아니면 피격 사운드
+        if (isDead)
         {
             SoundManager.Instance.PlaySound(deathSound);
-            isDead = true;
-            onDead.Invoke();
         }
         else
         {
             SoundManager.Instance.PlaySound(hitSound);
-        }
-    }
-
-    IEnumerator ShieldRegenCoroutine()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(0.1f);
-
-            // 사망했으면 중단
-            if (isDead) yield break;
-
-            // 실드가 최대치면 재생 불필요
-            if (currShield >= maxShield) continue;
-
-            // 재생 지연 시간이 지나지 않았으면 대기
-            if (Time.time - lastDamageTime < shieldRegenDelay) continue;
-
-            // 실드 재생
-            float regenAmount = shieldRegenRate * 0.1f; // 0.1초당
-            currShield = Mathf.Min(CurrShield + regenAmount, maxShield);
         }
     }
 
@@ -160,6 +170,16 @@ public class Damageable : MonoBehaviour
 
         maxDurability += adjust;
         if (adjustCurrDurability) currDurability += adjust;
+    }
+
+    public void SetDurabilityRegenRate(float rate)
+    {
+        durabilityRegenRate = rate;
+    }
+
+    public void SetDurabilityRegenDelay(float delay)
+    {
+        durabilityRegenDelay = delay;
     }
 
     public void SetMaxShield(float amount, bool adjustCurrShield = false)
@@ -182,7 +202,15 @@ public class Damageable : MonoBehaviour
 
     public void InitDurability()
     {
-        currDurability = maxDurability;
-        currShield = maxShield;
+        currDurability = MaxDurability;
+        currShield = MaxShield;
+    }
+
+    // 초기화 (usePlayerStats 설정 + 값 초기화)
+    public void Initialize(bool useStats)
+    {
+        usePlayerStats = useStats;
+        currDurability = MaxDurability;
+        currShield = MaxShield;
     }
 }

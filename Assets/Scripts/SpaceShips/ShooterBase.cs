@@ -4,27 +4,30 @@ using UnityEngine;
 using UnityEngine.Audio;
 
 public class ShooterBase : MonoBehaviour
-{    
+{
     public Transform[] firePoints;
-    public LayerMask targetLayer;    
+    public LayerMask targetLayer;
     public bool manualFire = false;
+
+    // PlayerStats 싱글톤에서 스탯 참조 여부 (플레이어용: true, 적용: false)
+    bool usePlayerStats = false;
 
     [Header("Fire time")]
     public float firePointDelay; // 탄환 발사 위치 별 간격
-    public float fireStartDelay = 0f; // 등장 후 첫 사격까지 대기시간    
+    public float fireStartDelay = 0f; // 등장 후 첫 사격까지 대기시간
     public float fireDelay; // 탄환 발사간격
     protected float lastFireTime = 0f; // 마지막 탄환 사격 시점
 
     [Header("Multy shoot")]
     public int shotCountPerFirepoint = 1; // 한번에 fire point 마다 발사하는 탄환 수
-    public float shotAngle = 0;    
+    public float shotAngle = 0;
     public float intervalX = 0.2f, intervalY = 0.2f; // 탄환 간격
     [Range(0, 1)]
     public float outsideSlower = 0f; // 바깥쪽 탄환일수록 속도를 느리게 하는 정도
 
     [Header("Projectile Info")]
     //public GameObject hitEffect;// 발사체 프리펩에서 지정할것 : 동기화 직렬화 불가
-    public GameObject projectilePrefab; // 발사할 탄환       
+    public GameObject projectilePrefab; // 발사할 탄환
     public int damage = 0;
     public int impactPower = 0;
     public int projectileMovePower = 10;
@@ -34,6 +37,11 @@ public class ShooterBase : MonoBehaviour
     [Header("Sounds")]
     public AudioClip shootSound;
     public AudioClip onHitSound;
+
+    // 런타임 스탯 프로퍼티 (PlayerStats 또는 로컬 필드에서 가져옴)
+    int ShotCount => usePlayerStats ? PlayerStats.Instance.multiShot : shotCountPerFirepoint;
+    int Damage => usePlayerStats ? PlayerStats.Instance.projectileDamage : damage;
+    float ProjectileSpeed => usePlayerStats ? PlayerStats.Instance.projectileSpeed : projectileMovePower;
 
     public bool Available => Time.time >= lastFireTime + fireDelay;
 
@@ -80,12 +88,12 @@ public class ShooterBase : MonoBehaviour
 
     // 실제 사격 -> shooter의 firePoint 방향대로 projectile을 생성
     protected virtual void Fire()
-    {        
+    {
         IEnumerator Cr()
         {
             foreach (Transform firePoint in firePoints)
             {
-                FireMulty(firePoint, shotCountPerFirepoint, intervalX, intervalY);
+                FireMulty(firePoint, ShotCount, intervalX, intervalY);
                 yield return new WaitForSeconds(firePointDelay);
             }
         }
@@ -148,17 +156,23 @@ public class ShooterBase : MonoBehaviour
             GameObject go = Instantiate(projectilePrefab, pos, rot);
             if (createBulletAsChild) go.transform.SetParent(transform);
 
-            // 발사체 속도 구하기             
+            // 발사체 속도 구하기
             // 중앙으로부터 회전이 클수록 탄속도 느려진다.
-            //float speed = projectileMovePower;
+            float baseSpeed = ProjectileSpeed;
             float nomalRatio = 1 - outsideSlower;
             float slowRatio = outsideSlower;
-            float speed = (nomalRatio * projectileMovePower) + (slowRatio * projectileMovePower * (1 - Mathf.Abs(f)));            
+            float speed = (nomalRatio * baseSpeed) + (slowRatio * baseSpeed * (1 - Mathf.Abs(f)));
 
             // 발사체 초기화
-            go.GetComponent<BulletBase>().Init(gameObject.layer, targetLayer, damage, impactPower, speed, projectileLiveTime, onHitSound);
+            go.GetComponent<BulletBase>().Init(gameObject.layer, targetLayer, Damage, impactPower, speed, projectileLiveTime, onHitSound);
         }
 
         SoundManager.Instance.PlaySound(shootSound);
+    }
+
+    // PlayerStats 참조 사용 여부 설정
+    public void TogglePlayerStatsReference(bool useStats)
+    {
+        usePlayerStats = useStats;
     }
 }

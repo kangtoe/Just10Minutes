@@ -30,12 +30,12 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6953213228797061933}
+  m_Father: {fileID: 6040580217769866543}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 6}
+  m_SizeDelta: {x: -12, y: -12}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &5225897267271243425
 CanvasRenderer:
@@ -105,8 +105,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5866941651402653185}
+  m_Children: []
   m_Father: {fileID: 6040580217769866543}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -176,9 +175,9 @@ GameObject:
   - component: {fileID: 6040580217769866543}
   - component: {fileID: 7690089715701006435}
   - component: {fileID: 3713167744510905585}
-  - component: {fileID: 1976534602665309347}
+  - component: {fileID: 6505115128989078252}
   m_Layer: 5
-  m_Name: Pulse
+  m_Name: Gage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -198,12 +197,13 @@ RectTransform:
   m_Children:
   - {fileID: 6953213228797061933}
   - {fileID: 1575118729795782573}
+  - {fileID: 5866941651402653185}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 261.9, y: 20}
+  m_SizeDelta: {x: 260, y: 20}
   m_Pivot: {x: 0, y: 0}
 --- !u!222 &7690089715701006435
 CanvasRenderer:
@@ -243,7 +243,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &1976534602665309347
+--- !u!114 &6505115128989078252
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -252,10 +252,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7274841570032113059}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c14e1f5a2d6abfe45934d980751e0877, type: 3}
+  m_Script: {fileID: 11500000, guid: 32e5095a3ee321f44abf3092552c788c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::DynamicGauge
   fillImage: {fileID: 7279966154362319986}
+  rectTransform: {fileID: 6040580217769866543}
+  scaleHorizontally: 1
+  baseSize: {x: 0, y: 0}
 --- !u!1001 &1997782607390374821
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -348,6 +351,10 @@ PrefabInstance:
       propertyPath: fillImage
       value: 
       objectReference: {fileID: 7279966154362319986}
+    - target: {fileID: 1703993468287611037, guid: 45795256dada62b47a0c01001efc6115, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3133075583038210994, guid: 45795256dada62b47a0c01001efc6115, type: 3}
       propertyPath: m_Name
       value: FillSparkUI

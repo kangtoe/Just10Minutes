@@ -7,11 +7,17 @@ public class Impactable : MonoBehaviour
 {
     [SerializeField] GameObject bumpEffect;
 
+    // PlayerStats 싱글톤에서 스탯 참조 여부 (플레이어용: true, 적용: false)
+    bool usePlayerStats = false;
+
     [Header("Amount")]
     public float impactDamageOther = 10;
     public float impactDamageSelf = 10;
     public float impactPowerOther = 10;
     public float impactPowerSelf = 10;
+
+    // 런타임 스탯 프로퍼티 (PlayerStats 또는 로컬 필드에서 가져옴)
+    float ImpactDamageOther => usePlayerStats ? PlayerStats.Instance.onImpact : impactDamageOther;
 
     Damageable m_damageable;
     Rigidbody2D m_rbody;
@@ -35,10 +41,10 @@ public class Impactable : MonoBehaviour
         }
 
         // do damage
-        Damageable damageable = coll.transform.GetComponent<Damageable>();       
+        Damageable damageable = coll.transform.GetComponent<Damageable>();
         if (damageable)
         {
-            damageable.GetDamaged(impactDamageOther);            
+            damageable.GetDamaged(ImpactDamageOther);
         }
 
         Vector2 dir = coll.transform.position - transform.position;
@@ -71,7 +77,7 @@ public class Impactable : MonoBehaviour
     public void SetDamageAmount(float? DamageSelf = null, float ? DamageOther = null)
     {
         if (DamageSelf != null) impactDamageSelf = DamageSelf.Value;
-        if (DamageOther != null) impactDamageOther = DamageOther.Value;        
+        if (DamageOther != null) impactDamageOther = DamageOther.Value;
     }
 
     public void StuckAdjust(Collision2D coll)
@@ -96,4 +102,9 @@ public class Impactable : MonoBehaviour
         }
     }
 
+    // PlayerStats 참조 사용 여부 설정
+    public void TogglePlayerStatsReference(bool useStats)
+    {
+        usePlayerStats = useStats;
+    }
 }
