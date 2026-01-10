@@ -48,18 +48,6 @@ public class GameManager : MonoSingleton<GameManager>
         if (InputManager.Instance.HelpInput)
         {
             UiManager.Instance.ToggleHelpUI(!UiManager.Instance.OnHelp);
-        } 
-
-        if (InputManager.Instance.UpgradeInput)
-        {
-            if (gameState == GameState.OnUpgrade)
-            {
-                ToggleUpgradeState(false);
-            }
-            else if (gameState == GameState.OnCombat)
-            {
-                ToggleUpgradeState(true);
-            }                                         
         }
 
         if (InputManager.Instance.EscapeInput)
@@ -105,10 +93,16 @@ public class GameManager : MonoSingleton<GameManager>
 
     void GameStart(float delay = 0.1f)
     {
+        // Early return - 이미 게임이 시작되었으면 중복 실행 방지
+        if (gameState != GameState.OnTitle) return;
+
+        // 상태를 먼저 변경하여 중복 호출 방지
+        gameState = GameState.Undefinded; // 임시 상태로 변경 (코루틴에서 OnCombat으로 변경됨)
+
         IEnumerator GameStartCr(float delay)
         {
             //playerShip.UsePulse(true);
-            playerShip.InitShip();            
+            playerShip.InitShip();
 
             yield return new WaitForSeconds(delay);
 
@@ -116,9 +110,14 @@ public class GameManager : MonoSingleton<GameManager>
             UiManager.Instance.SetCanvas(GameState.OnCombat);
             SoundManager.Instance.PlaySound(startSound);
             TimeRecordManager.Instance.SetActiveCount(true);
+
+            // 게임 시작 시 포인트가 있으면 업그레이드 창 열기 (레벨업과 동일하게 처리)
+            if (PlayerStats.Instance.upgradePoint > 0)
+            {
+                UpgradeManager.Instance.PointUp(0); // 0을 넘겨서 포인트 증가 없이 창만 열기
+            }
         }
 
-        if (gameState != GameState.OnTitle) return;        
         StartCoroutine(GameStartCr(delay));
     }    
 
