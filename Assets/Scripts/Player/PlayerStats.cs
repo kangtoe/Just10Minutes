@@ -3,6 +3,9 @@ using UnityEngine;
 // 플레이어의 모든 스탯을 중앙 집중식으로 관리하는 싱글톤
 public class PlayerStats : MonoSingleton<PlayerStats>
 {
+    [Header("업그레이드")]
+    public int upgradePoint = 0;
+
     [Header("생존 스탯")]
     public float maxDurability = 100f;
     public float durabilityRegenRate = 0f;  // 초당 재생량
@@ -79,6 +82,8 @@ public class PlayerStats : MonoSingleton<PlayerStats>
     // 디버깅용 - 모든 스탯 초기화
     public void ResetStats()
     {
+        upgradePoint = 0;
+
         maxDurability = 100f;
         durabilityRegenRate = 0f;
         durabilityRegenDelay = 5f;
