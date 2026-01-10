@@ -18,14 +18,12 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
     // 현재 제시된 업그레이드 옵션들
     List<UpgradeOption> currentOptions = new List<UpgradeOption>();
 
-    int upgradePoint = 0;
-
     // Start is called before the first frame update
     void Start()
     {
         // 초기 스탯 설정 (기본값)
         InitPlayershipStats();
-        UiManager.Instance.SetUpgradePointText(upgradePoint);
+        UiManager.Instance.SetUpgradePointText(PlayerStats.Instance.upgradePoint);
 
         // 버튼 리스너 등록
         for (int i = 0; i < UpgradeButtons.Count; i++)
@@ -45,7 +43,7 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
 
     void SelectUpgrade(int index)
     {
-        if (upgradePoint < 1)
+        if (PlayerStats.Instance.upgradePoint < 1)
         {
             UiManager.Instance.CreateText("No Point!", true);
             UiManager.Instance.ShakeUI();
@@ -79,7 +77,7 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
         // PlayerStats에 증분 적용
         PlayerStats.Instance.ApplyUpgrade(option.field, option.incrementValue);
 
-        // 내구도/실드 업그레이드 시 현재 값도 함께 증가
+        // 내구도/실드 업그레이드 시 현재 값도 함께 증가 (이벤트를 통해 UI 자동 갱신)
         if (option.field == UpgradeField.MaxDurability)
         {
             GameManager.Instance.PlayerShip.Damageable.ModifyDurability(option.incrementValue);
@@ -90,13 +88,14 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
         }
 
         // 포인트 차감
-        upgradePoint--;
-        UiManager.Instance.SetUpgradePointText(upgradePoint);
+        PlayerStats.Instance.upgradePoint--;
+        UiManager.Instance.SetUpgradePointText(PlayerStats.Instance.upgradePoint);
 
         SoundManager.Instance.PlaySound(upgradeSound);
+        UiManager.Instance.ShakeUI();
 
         // 포인트가 남아있으면 새로운 옵션 생성, 없으면 창 닫기
-        if (upgradePoint > 0)
+        if (PlayerStats.Instance.upgradePoint > 0)
         {
             GenerateRandomUpgrades();
         }
@@ -139,12 +138,18 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
 
     public void PointUp(int amount = 1)
     {
-        upgradePoint += amount;
-        UiManager.Instance.SetUpgradePointText(upgradePoint);
+        PlayerStats.Instance.upgradePoint += amount;
+        UiManager.Instance.SetUpgradePointText(PlayerStats.Instance.upgradePoint);
 
-        // 랜덤 업그레이드 옵션 생성
+        // 이미 업그레이드 화면이 열려있으면 옵션만 갱신
+        if (GameManager.Instance.GameState == GameState.OnUpgrade)
+        {
+            GenerateRandomUpgrades();
+            return;
+        }
+
+        // 업그레이드 화면 열기
         GenerateRandomUpgrades();
-
         GameManager.Instance.ToggleUpgradeState(true);
     }
 }

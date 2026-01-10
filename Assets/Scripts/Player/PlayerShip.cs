@@ -19,13 +19,19 @@ public class PlayerShip : MonoBehaviour
     {
         Initialize();
 
+        // 피해 이벤트 (게임 메카닉용 - 화면 흔들림)
         damageable.onDamaged.AddListener(delegate
         {
-            UpdateDurabilityUI();
             UiManager.Instance.ShakeUI();
         });
 
-        damageable.onShieldDamaged.AddListener(delegate
+        // 값 변경 이벤트 (UI 업데이트용 - 증가/감소 모두 포함)
+        damageable.onDurabilityChanged.AddListener(delegate
+        {
+            UpdateDurabilityUI();
+        });
+
+        damageable.onShieldChanged.AddListener(delegate
         {
             UpdateDurabilityUI();
         });
@@ -57,7 +63,7 @@ public class PlayerShip : MonoBehaviour
 
 
 
-    void UpdateDurabilityUI()
+    public void UpdateDurabilityUI()
     {
         float currDurability = damageable.CurrDurability;
         float maxDurability = damageable.MaxDurability;

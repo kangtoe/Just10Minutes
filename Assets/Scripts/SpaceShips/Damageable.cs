@@ -15,7 +15,13 @@ public class Damageable : MonoBehaviour
     public UnityEvent onDamaged = new UnityEvent();
 
     [HideInInspector]
+    public UnityEvent onDurabilityChanged = new UnityEvent();  // 내구도 변경 시 (증가/감소 모두)
+
+    [HideInInspector]
     public UnityEvent onShieldDamaged = new UnityEvent();
+
+    [HideInInspector]
+    public UnityEvent onShieldChanged = new UnityEvent();  // 실드 변경 시 (증가/감소 모두)
 
     [HideInInspector]
     public UnityEvent onShieldDepleted = new UnityEvent();
@@ -107,7 +113,14 @@ public class Damageable : MonoBehaviour
             onShieldDepleted.Invoke();
         }
 
-        onShieldDamaged.Invoke();
+        // 피해를 받았을 때만 onShieldDamaged 발생
+        if (amount < 0)
+        {
+            onShieldDamaged.Invoke();
+        }
+
+        // 실드 값 변경 시 항상 발생 (UI 업데이트용)
+        onShieldChanged.Invoke();
     }
 
     // 내구도 증감 (양수: 증가, 음수: 감소)
@@ -118,7 +131,14 @@ public class Damageable : MonoBehaviour
         currDurability += amount;
         currDurability = Mathf.Clamp(currDurability, 0, MaxDurability);
 
-        onDamaged.Invoke();
+        // 피해를 받았을 때만 onDamaged 발생
+        if (amount < 0)
+        {
+            onDamaged.Invoke();
+        }
+
+        // 내구도 값 변경 시 항상 발생 (UI 업데이트용)
+        onDurabilityChanged.Invoke();
 
         // 사망 체크
         if (currDurability == 0)
