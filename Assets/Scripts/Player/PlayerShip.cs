@@ -10,6 +10,8 @@ public class PlayerShip : MonoBehaviour
     [SerializeField] Impactable impactable;
     [SerializeField] Damageable damageable;
 
+    Rigidbody2D rbody;
+
     public Damageable Damageable => damageable;
 
     // MoveStandard와 RotateByInput 컴포넌트가 자동으로 이동/회전 처리
@@ -17,6 +19,7 @@ public class PlayerShip : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        rbody = GetComponent<Rigidbody2D>();
         Initialize();
 
         // 피해 이벤트 (게임 메카닉용 - 화면 흔들림)
@@ -59,6 +62,22 @@ public class PlayerShip : MonoBehaviour
 
         // 3. 초기 UI 갱신
         UpdateDurabilityUI();
+
+        // 4. Rigidbody2D.mass를 PlayerStats.mass 값으로 강제 설정
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+        {
+            Debug.LogError($"[PlayerShip] Rigidbody2D가 없습니다!");
+        }
+        else
+        {
+            float expectedMass = PlayerStats.Instance.mass;
+            if (Mathf.Abs(rb.mass - expectedMass) > 0.001f)
+            {
+                Debug.LogWarning($"[PlayerShip] Rigidbody2D.mass를 직접 수정하지 마세요! PlayerStats.mass({expectedMass})로 복원합니다.");
+                rb.mass = expectedMass;
+            }
+        }
     }
 
 

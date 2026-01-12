@@ -55,4 +55,5 @@ public enum UpgradeField
     // 이동
     MoveSpeed,        // 이동 속도
     RotateSpeed,      // 회전 속도
+    Mass,             // 기체 질량
 }

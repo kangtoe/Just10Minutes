@@ -6,9 +6,10 @@ public class MoveStandard : MonoBehaviour
 {
     [SerializeField] bool moveManually;
     [SerializeField] bool limitMaxSpeed;
-    [SerializeField] protected float movePower = 10f;    
+    [SerializeField] protected float movePower = 10f;
 
     protected Rigidbody2D rbody;
+    bool isPlayerShip;
 
     //TrailEffect trailEffect;
     //FlameEffect flameEffect;
@@ -17,9 +18,16 @@ public class MoveStandard : MonoBehaviour
     protected void Start()
     {
         rbody = GetComponent<Rigidbody2D>();
+        isPlayerShip = GetComponent<PlayerShip>() != null;
 
         //trailEffect = GetComponentInChildren<TrailEffect>();
         //flameEffect = GetComponentInChildren<FlameEffect>();
+    }
+
+    // 현재 사용할 질량 값 반환 (PlayerShip이면 PlayerStats 참조, 아니면 Rigidbody2D 사용)
+    float GetMass()
+    {
+        return isPlayerShip ? PlayerStats.Instance.mass : rbody.mass;
     }
     
     protected void FixedUpdate()
@@ -31,9 +39,10 @@ public class MoveStandard : MonoBehaviour
 
         //print(rbody.velocity.magnitude);
 
-        float limit = movePower * rbody.mass / rbody.linearDamping;
+        float mass = GetMass();
+        float limit = movePower * mass / rbody.linearDamping;
         if (limitMaxSpeed && rbody.linearVelocity.magnitude > limit)
-        {            
+        {
             rbody.linearVelocity = Vector2.ClampMagnitude(rbody.linearVelocity, limit * 1f);
         }
 
@@ -45,11 +54,13 @@ public class MoveStandard : MonoBehaviour
 
     public void Move()
     {
-        rbody.AddForce(transform.up * movePower * rbody.mass);
+        float mass = GetMass();
+        rbody.AddForce(transform.up * movePower * mass);
     }
 
     public void Move(Vector2 vec)
     {
-        rbody.AddForce(vec.normalized * movePower * rbody.mass);
+        float mass = GetMass();
+        rbody.AddForce(vec.normalized * movePower * mass);
     }
 }

@@ -27,6 +27,7 @@ public class PlayerStats : MonoSingleton<PlayerStats>
     [Header("이동 스탯")]
     public float moveSpeed = 5f;           // 이동 속도
     public float rotateSpeed = 180f;       // 회전 속도
+    public float mass = 1f;                // 기체 질량
 
     // 업그레이드 적용 (증분 방식)
     public void ApplyUpgrade(UpgradeField field, float increment)
@@ -76,6 +77,9 @@ public class PlayerStats : MonoSingleton<PlayerStats>
             case UpgradeField.RotateSpeed:
                 rotateSpeed += increment;
                 break;
+            case UpgradeField.Mass:
+                mass += increment;
+                break;
         }
     }
 
@@ -101,5 +105,6 @@ public class PlayerStats : MonoSingleton<PlayerStats>
 
         moveSpeed = 5f;
         rotateSpeed = 180f;
+        mass = 1f;
     }
 }
