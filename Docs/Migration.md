@@ -178,7 +178,7 @@ enum UpgradeType {
 - [ ] 충돌 피해량 밸런싱
 - [ ] 사격 빌드 vs 충돌 빌드 차별화
 
-### 6. 적 생성 시스템 (재사용)
+### 6. 적 생성 시스템 (대폭 개선) 🚧 진행 중
 
 **현재 상태:**
 ```csharp
@@ -188,9 +188,23 @@ enum UpgradeType {
 - Edge 별 스폰 위치 ✅
 ```
 
-**작업 필요:**
-- [ ] 적 종류 확인 및 정리
-- [ ] 스폰 패턴 조정
+**진행 중인 작업 (절차적 웨이브 생성 시스템):**
+- [x] 시스템 분석 및 기획 문서 작성 완료
+- [x] 구현 계획 수립 완료 (1단계)
+- [x] Phase 1: 데이터 구조 구축 ✅
+- [x] Phase 2: 절차적 생성 엔진 (SmallSwarm 패턴) ✅
+- [x] Phase 3: EnemySpawner 통합 ✅
+- [x] Phase 4: 보스 웨이브 단순화 (ScriptableObject 대신 상단 고정 스폰) ✅
+- [ ] Phase 5: Unity Editor 설정 (프리팹 연결)
+- [ ] Phase 6: 통합 테스트
+
+**목표 (1단계)**:
+- 웨이브 1-9, 11-19, 21-29: 절차적 생성 (SmallSwarm 패턴)
+- 웨이브 10, 20, 30: 보스 (상단 고정 스폰, 각 웨이브마다 다른 보스 1기)
+- 예산 기반 적 생성 (예산 = 100 + 웨이브번호 × 50)
+- 타입 안정성: EnemyShip 컴포넌트 직접 등록 (GameObject 대신)
+
+**상세 문서**: [ProceduralWaveGeneration_Phase1.md](Implementation/ProceduralWaveGeneration_Phase1.md)
 
 ## 삭제/미사용 예정 시스템
 
