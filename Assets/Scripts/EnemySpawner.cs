@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 
 [Serializable]
@@ -23,12 +24,7 @@ public class SpawnInfo
 
 public class EnemySpawner : MonoSingleton<EnemySpawner>
 {
-    [Header("MUST SET 0 ON SHPPING")]
-    [SerializeField]
-    float devStartTime;
-
-    [Header("Wave System (New)")]
-    [SerializeField] bool useWaveSystem = false;  // false로 시작 (안전)
+    [Header("Wave System")]
     [SerializeField] int startWaveNumber = 1;
     [SerializeField] int maxWaveNumber = 30;
     [SerializeField] float waveTransitionDelay = 2f;
@@ -47,53 +43,33 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
     [Tooltip("웨이브 30 보스 (최종)")]
     [SerializeField] EnemyShip boss30Prefab;
 
-    [Header("Legacy System (Old)")]
-    [Space]
-    [SerializeField]
-    GameObject defaultEnemyPrefab;
+    [Header("Wave Status (Read Only)")]
+    [SerializeField,ReadOnly] private int currentWaveNumber = 0;
+    [SerializeField,ReadOnly] private bool isWaveActive = false;
+    [SerializeField,ReadOnly] private int currentWaveEnemyCount = 0;
 
-    [SerializeField]
-    List<SpawnInfo> timeSpawnInfoList;
-
-    [SerializeField]
-    List<SpawnInfo> endlessSpawnInfoList;
-
-    // 웨이브 시스템 변수
-    private int currentWaveNumber = 0;
-    private bool isWaveActive = false;
+    // 내부 데이터
     private List<GameObject> currentWaveEnemies = new List<GameObject>();
-
-    // Legacy 시스템 변수
-    List<SpawnInfo> endlessSpawnInfoListOrigin;
-    float ElapsedTime => TimeRecordManager.Instance.TimeRecord;
-    float spawnEndTime;
-
-    // 디버깅용 (Inspector에서 확인 가능)
-    public int CurrentWaveNumber => currentWaveNumber;
-    public bool IsWaveActive => isWaveActive;
-    public int CurrentWaveEnemyCount => currentWaveEnemies.Count;
+    private bool isAllSpawnsComplete = false;  // 모든 스폰이 완료되었는지
+    private int activeSpawnCoroutines = 0;     // 실행 중인 스폰 코루틴 수
 
     private void Start()
     {
-        if (useWaveSystem)
-        {
-            InitWaveSystem();
-        }
-        else
-        {
-            InitLegacySystem();
-        }
+        InitWaveSystem();
     }
 
     private void Update()
     {
-        if (useWaveSystem)
+        UpdateWaveSystem();
+
+        // Inspector 디버그 정보 업데이트
+        currentWaveEnemyCount = currentWaveEnemies.Count;
+
+        // UI 디버그 텍스트 업데이트
+        if (UiManager.Instance != null)
         {
-            UpdateWaveSystem();
-        }
-        else
-        {
-            UpdateLegacySystem();
+            bool isSpawning = isWaveActive && !isAllSpawnsComplete;
+            UiManager.Instance.SetWaveDebugText(currentWaveNumber, isSpawning, currentWaveEnemyCount);
         }
     }
 
@@ -113,8 +89,8 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
 
     private void UpdateWaveSystem()
     {
-        // 웨이브 완료 체크
-        if (isWaveActive && AreAllWaveEnemiesDead())
+        // 웨이브 완료 체크: 모든 스폰이 완료되고 + 모든 적이 죽었을 때만
+        if (isWaveActive && isAllSpawnsComplete && AreAllWaveEnemiesDead())
         {
             OnWaveComplete();
         }
@@ -131,6 +107,8 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
         Debug.Log($"[Wave {waveNumber}] Starting...");
 
         isWaveActive = true;
+        isAllSpawnsComplete = false;
+        activeSpawnCoroutines = 0;
         currentWaveEnemies.Clear();
 
         WaveType waveType = WaveBudgetCalculator.GetWaveType(waveNumber);
@@ -210,6 +188,7 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
 
     private void ExecuteSpawnInfos(SpawnInfo[] spawnInfos)
     {
+        activeSpawnCoroutines = spawnInfos.Length;
         foreach (SpawnInfo info in spawnInfos)
         {
             StartCoroutine(SpawnWithDelay(info));
@@ -236,6 +215,14 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
             {
                 yield return new WaitForSeconds(info.spawnInterval);
             }
+        }
+
+        // 이 스폰 그룹 완료
+        activeSpawnCoroutines--;
+        if (activeSpawnCoroutines <= 0)
+        {
+            isAllSpawnsComplete = true;
+            Debug.Log($"[Wave {currentWaveNumber}] All spawns complete - {currentWaveEnemies.Count} enemies spawned");
         }
     }
 
@@ -271,74 +258,4 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
         StartWave(waveNumber);
     }
 
-    // ==================== Legacy 시스템 ====================
-
-    private void InitLegacySystem()
-    {
-        for (int i = timeSpawnInfoList.Count - 1; i >= 0; i--)
-        {
-            SpawnInfo spawnInfo = timeSpawnInfoList[i];
-            if (devStartTime > spawnInfo.spawnTime)
-            {
-                timeSpawnInfoList.RemoveAt(i);
-            }
-        }
-
-        endlessSpawnInfoListOrigin = new(endlessSpawnInfoList);
-    }
-
-    private void UpdateLegacySystem()
-    {
-        for (int i = timeSpawnInfoList.Count - 1; i >= 0; i--)
-        {
-            SpawnInfo spawnInfo = timeSpawnInfoList[i];
-            if (ElapsedTime + devStartTime > spawnInfo.spawnTime)
-            {
-                ObjectSpawner.Instance.SpawnObjects(spawnInfo.spawnPrefab, spawnInfo.spawnSide, spawnInfo.count, spawnInfo.spawnInterval);
-                timeSpawnInfoList.RemoveAt(i);
-
-                if (timeSpawnInfoList.Count == 0)
-                {
-                    spawnEndTime = ElapsedTime;
-                }
-            }
-        }
-
-        if (timeSpawnInfoList.Count > 0) return;
-        for (int i = endlessSpawnInfoList.Count - 1; i >= 0; i--)
-        {
-            SpawnInfo spawnInfo = endlessSpawnInfoList[i];
-            if (ElapsedTime - spawnEndTime > spawnInfo.spawnTime)
-            {
-                ObjectSpawner.Instance.SpawnObjects(spawnInfo.spawnPrefab, spawnInfo.spawnSide, spawnInfo.count, spawnInfo.spawnInterval);
-                endlessSpawnInfoList.RemoveAt(i);
-
-                if (endlessSpawnInfoList.Count == 0)
-                {
-                    spawnEndTime = ElapsedTime;
-                    endlessSpawnInfoList = new(endlessSpawnInfoListOrigin);
-                }
-            }
-        }
-    }
-
-    // ==================== Editor 지원 메서드 ====================
-
-    public void AddSpawnInfo()
-    {
-        float SpawnEndTime = GetSpawnEndTime();
-
-        SpawnInfo info = new();
-        info.spawnPrefab = defaultEnemyPrefab;
-        info.spawnTime = GetSpawnEndTime();
-        info.count = 1;
-        info.spawnSide = Edge.Random;
-        timeSpawnInfoList.Add(info);
-    }
-
-    public float GetSpawnEndTime()
-    {
-        if (timeSpawnInfoList.Count == 0) return 0;
-        return timeSpawnInfoList[timeSpawnInfoList.Count - 1].SpawnEndTime;
-    }
 }
