@@ -1798,6 +1798,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   devStartTime: 0
+  useWaveSystem: 1
+  startWaveNumber: 1
+  maxWaveNumber: 30
+  waveTransitionDelay: 2
+  enemyPrefabs:
+  - {fileID: 2159223484281061927, guid: 0c480471cb4caeb47908089266ee7b9b, type: 3}
+  - {fileID: 2159223484281061927, guid: ab27139085cdd7e45856d576f49b00af, type: 3}
+  - {fileID: 6078006324994066098, guid: 0eb312aac38994c459be0e2df8a36f70, type: 3}
+  - {fileID: 2159223484281061927, guid: 8f726611f885d3b4aabdb1814acd76dd, type: 3}
+  - {fileID: 6078006324994066098, guid: dc55ddee9f640f947be0b11beec51e17, type: 3}
+  - {fileID: 6078006324994066098, guid: a95329395d2659c43816e8bd1cd0667a, type: 3}
+  - {fileID: 6078006324994066098, guid: c96afb732f9c1894c943bc5ec8756bb5, type: 3}
+  - {fileID: 2159223484281061927, guid: 447fb77f76e58be448409972773c1639, type: 3}
+  - {fileID: 2159223484281061927, guid: a72143d11175ca947809a1497d408436, type: 3}
+  - {fileID: 4232547872248400293, guid: 65b30501e67ebe94d9b05314921d0652, type: 3}
+  - {fileID: 2159223484281061927, guid: c8e508e7f002d9a4c82c6de3d98f05ae, type: 3}
+  - {fileID: 9150893838177995030, guid: 44f56d21a6327184aabfbf82baa55260, type: 3}
+  - {fileID: 2159223484281061927, guid: d4ffbc02d81eb304fb89c31bb6493e63, type: 3}
+  boss10Prefab: {fileID: 6078006324994066098, guid: 83b513a659d9bdb4cb891d2a3a34fdab, type: 3}
+  boss20Prefab: {fileID: 6078006324994066098, guid: 83b513a659d9bdb4cb891d2a3a34fdab, type: 3}
+  boss30Prefab: {fileID: 6078006324994066098, guid: 83b513a659d9bdb4cb891d2a3a34fdab, type: 3}
   defaultEnemyPrefab: {fileID: 6568559490971600458, guid: 0eb312aac38994c459be0e2df8a36f70, type: 3}
   timeSpawnInfoList:
   - desc: "\uAE30\uCD08 \uC801 \uC5F0\uC18D \uC2A4\uD3F01"

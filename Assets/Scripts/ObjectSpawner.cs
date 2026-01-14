@@ -96,6 +96,26 @@ public class ObjectSpawner : MonoSingleton<ObjectSpawner>
         }
     }
 
+    /// <summary>
+    /// 단일 오브젝트를 즉시 스폰 (웨이브 시스템용)
+    /// </summary>
+    public GameObject SpawnObject(GameObject objectPrefab, Edge spawnSide)
+    {
+        if (objectPrefab == null)
+        {
+            Debug.Log("objectPrefab is null");
+            return null;
+        }
+
+        var (pos, rot) = GetSpawnPointAndRotation(objectPrefab, spawnSide);
+        GameObject go = Instantiate(objectPrefab);
+        go.transform.position = pos;
+        go.transform.rotation = rot;
+        spawned.Add(go);
+
+        return go;
+    }
+
     (Vector2, Quaternion) GetRandomPointAndRotation(GameObject objectPrefab, List<GameObject> checkObjects = null)
     {
         bool CloseCheck(Vector3 pos, List<GameObject> checkObjects, float dist)
