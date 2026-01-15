@@ -20,11 +20,11 @@ public class FloatingText : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Translate(0, moveSpeed * Time.unscaledDeltaTime, 0);
+        transform.Translate(0, moveSpeed * Time.deltaTime, 0);
 
         // 이미지를 흐릿하게
         Color color = txt.color;
-        color.a -= Time.unscaledDeltaTime * fadeSpeed;
+        color.a -= Time.deltaTime * fadeSpeed;
         txt.color = color;
 
         if (txt.color.a < 0.01f) Destroy(gameObject);

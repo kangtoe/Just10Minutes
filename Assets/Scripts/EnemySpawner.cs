@@ -28,6 +28,7 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
     [SerializeField] int startWaveNumber = 1;
     [SerializeField] int maxWaveNumber = 30;
     [SerializeField] float waveTransitionDelay = 2f;
+    [SerializeField] float waveStartDelay = 1.5f;  // 웨이브 시작 알림 후 스폰까지 딜레이
 
     [Header("Enemy Prefabs for Wave Generation")]
     [Tooltip("절차적 생성에 사용될 모든 적 프리팹 (14개)")]
@@ -66,25 +67,20 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
         currentWaveEnemyCount = currentWaveEnemies.Count;
 
         // UI 디버그 텍스트 업데이트
-        if (UiManager.Instance != null)
-        {
-            bool isSpawning = isWaveActive && !isAllSpawnsComplete;
-            UiManager.Instance.SetWaveDebugText(currentWaveNumber, isSpawning, currentWaveEnemyCount);
-        }
+        bool isSpawning = isWaveActive && !isAllSpawnsComplete;
+        UiManager.Instance.SetWaveDebugText(currentWaveNumber, isSpawning, currentWaveEnemyCount);
     }
 
     // ==================== 웨이브 시스템 ====================
 
     private void InitWaveSystem()
-    {
-        Debug.Log("[EnemySpawner] Initializing Wave System");
-
+    {        
         // 적 프리팹 레지스트리 초기화
         ProceduralWaveGenerator.Initialize(enemyPrefabs);
 
         // 첫 웨이브 시작
         currentWaveNumber = startWaveNumber;
-        StartWave(currentWaveNumber);
+        StartCoroutine(StartWaveCoroutine(currentWaveNumber));
     }
 
     private void UpdateWaveSystem()
@@ -96,15 +92,21 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
         }
     }
 
-    private void StartWave(int waveNumber)
+    private IEnumerator StartWaveCoroutine(int waveNumber)
     {
         if (waveNumber > maxWaveNumber)
         {
             Debug.Log("[EnemySpawner] All waves completed!");
-            return;
+            yield break;
         }
 
         Debug.Log($"[Wave {waveNumber}] Starting...");
+
+        // 웨이브 알림 표시
+        UiManager.Instance.CreateText($"WAVE {waveNumber}");
+
+        // 웨이브 시작 딜레이 (플레이어 준비 시간)
+        yield return new WaitForSeconds(waveStartDelay);
 
         isWaveActive = true;
         isAllSpawnsComplete = false;
@@ -255,7 +257,7 @@ public class EnemySpawner : MonoSingleton<EnemySpawner>
     private IEnumerator StartWaveDelayed(int waveNumber, float delay)
     {
         yield return new WaitForSeconds(delay);
-        StartWave(waveNumber);
+        StartCoroutine(StartWaveCoroutine(waveNumber));
     }
 
 }
