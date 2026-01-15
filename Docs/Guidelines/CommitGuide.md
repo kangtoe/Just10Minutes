@@ -22,9 +22,8 @@
 | `feat` | 새로운 기능 추가 | `feat: 플레이어 자동 이동 시스템 구현` |
 | `fix` | 버그 수정 | `fix: 경계 충돌 시 즉사 처리 버그 수정` |
 | `refactor` | 코드 리팩토링 | `refactor: EnemySpawner 로직 개선` |
-| `chore` | 빌드, 설정 변경 | `chore: .gitignore에 UserSettings 추가` |
+| `chore` | 빌드, 설정, Unity 에셋 변경 | `chore: FloatingText 속도 파라미터 조정` |
 | `docs` | 문서 작업 | `docs: 게임 기획 문서 작성` |
-| `style` | 코드 스타일 변경 | `style: PlayerController 포맷팅` |
 | `perf` | 성능 개선 | `perf: Object Pooling 적용` |
 
 ### 작성 원칙
