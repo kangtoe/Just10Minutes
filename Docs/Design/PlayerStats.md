@@ -51,29 +51,59 @@
 
 ## UpgradeField Enum 확장
 
+### Phase 1 (현재 구현)
 ```csharp
 public enum UpgradeField
 {
-    // 생존
-    MaxDurability,    // 최대 내구도
-    MaxShield,        // 최대 실드
-    ShieldRegenRate,  // 실드 재생 속도
-    ShieldRegenDelay, // 실드 재생 지연 (감소)
+    // 생존 (구현됨)
+    MaxDurability,    // 최대 내구도 ✅
+    MaxShield,        // 최대 실드 ✅
+    ShieldRegenRate,  // 실드 재생 속도 ✅
+    ShieldRegenDelay, // 실드 재생 지연 (감소) ✅
 
     // 사격
-    FireRate,         // 연사 속도 (fireDelay 감소)
-    ProjectileDamage, // 발사체 피해
-    ProjectileSpeed,  // 발사체 속도
-    MultiShot,        // 멀티샷
+    MultiShot,        // 멀티샷 ✅
 
     // 충돌
-    OnImpact,         // 충돌 피해 (공격)
-    ImpactResist,     // 충돌 피해 (자신) 감소
-
-    // 이동
-    MoveSpeed,        // 이동 속도
-    RotateSpeed,      // 회전 속도
+    OnImpact,         // 충돌 피해 (공격) ✅
 }
+```
+
+### Phase 2 추가 예정 (우선순위 1)
+```csharp
+// 사격 빌드 강화
+FireRate,         // 연사 속도 (fireDelay 감소)
+ProjectileDamage, // 발사체 피해
+ProjectileSpeed,  // 발사체 속도
+
+// 이동/기동 빌드 강화
+MoveSpeed,        // 이동 속도
+RotateSpeed,      // 회전 속도
+
+// 충돌 빌드 강화
+ImpactResist,     // 충돌 피해 (자신) 감소
+```
+
+### Phase 2 추가 예정 (우선순위 2)
+```csharp
+// 특수 메커니즘
+Penetration,      // 관통 횟수
+ProjectileSize,   // 발사체 크기
+KnockbackPower,   // 넉백 강도
+ExpBonus,         // 경험치 획득량
+DurabilityRegen,  // 내구도 재생
+Mass,             // 질량 (넉백 저항, 충돌 피해 증가)
+```
+
+### Phase 3 검토 (특수 업그레이드)
+```csharp
+// 고급 메커니즘 (새로운 시스템 필요)
+CriticalChance,   // 치명타 확률
+CriticalDamage,   // 치명타 피해
+LifeSteal,        // 생명력 흡수
+Drone,            // 드론 (DroneMaster 사용)
+ShieldOvercharge, // 실드 과충전 (150%까지)
+Afterburner,      // 애프터버너 (AfterImage 사용)
 ```
 
 ## 빌드 예시
