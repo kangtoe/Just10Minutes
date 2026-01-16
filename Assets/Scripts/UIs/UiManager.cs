@@ -72,7 +72,7 @@ public class UiManager : MonoSingleton<UiManager>
 
     public void SetScoreText(int score)
     {
-        string str = "SCORE : " + score.ToString("000,000");
+        string str = score.ToString("000,000"); // "SCORE : " + 
         scoreText.text = str;
         overScoreText.text = str;
     }
