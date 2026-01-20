@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 각 적의 스폰 가능한 시간 범위를 정의하고 관리하는 정적 클래스
 /// 시간 기반 스폰 시스템에서 사용
+/// CSV 파일(Resources/Data/EnemyTimeRanges.csv)에서 데이터 로드
 /// </summary>
 public static class EnemyTimeRangeData
 {
@@ -13,31 +14,53 @@ public static class EnemyTimeRangeData
     /// spawnTimeMax: 스폰 가능한 최대 시간 (큰 값, 게임 초반)
     /// 카운트다운 방식: 840초(14:00) → 0초(0:00)
     /// </summary>
-    private static Dictionary<string, (float min, float max)> timeRanges = new Dictionary<string, (float, float)>()
+    private static Dictionary<string, (float min, float max)> timeRanges;
+
+    private static bool isInitialized = false;
+
+    /// <summary>
+    /// 정적 생성자: CSV 파일에서 데이터 로드
+    /// </summary>
+    static EnemyTimeRangeData()
     {
-        // Light 등급 (비용 20-25)
-        { "Enemy_light_child", (660f, 840f) },      // 14:00 ~ 11:00 (3분)
-        { "Enemy_light_kido", (630f, 810f) },       // 13:30 ~ 10:30 (3분)
-        { "Enemy_light_thunder", (600f, 780f) },    // 13:00 ~ 10:00 (3분)
+        LoadFromCSV();
+    }
 
-        // Light+ 등급 (비용 40)
-        { "Enemy_light_shield", (540f, 750f) },     // 12:30 ~ 9:00 (3.5분)
+    /// <summary>
+    /// CSV 파일에서 시간 범위 데이터 로드
+    /// </summary>
+    private static void LoadFromCSV()
+    {
+        timeRanges = new Dictionary<string, (float, float)>();
 
-        // Mid 등급 (비용 80-100)
-        { "Enemy_mid_Ghost", (420f, 720f) },        // 12:00 ~ 7:00 (5분)
-        { "Enemy_mid_Hornet", (390f, 690f) },       // 11:30 ~ 6:30 (5분)
-        { "Enemy_mid_master", (360f, 660f) },       // 11:00 ~ 6:00 (5분)
+        TextAsset csvFile = Resources.Load<TextAsset>("Data/EnemyTimeRanges");
+        if (csvFile == null)
+        {
+            Debug.LogError("[EnemyTimeRangeData] CSV file not found at Resources/Data/EnemyTimeRanges.csv");
+            return;
+        }
 
-        // Mid+ 등급 (비용 120-150)
-        { "Enemy_mid_Knight", (300f, 630f) },       // 10:30 ~ 5:00 (5.5분)
-        { "Enemy_mid_sniper", (270f, 600f) },       // 10:00 ~ 4:30 (5.5분)
-        { "Enemy_mid_tank", (240f, 570f) },         // 9:30 ~ 4:00 (5.5분)
-        { "Enemy_mid_Spiral", (210f, 540f) },       // 9:00 ~ 3:30 (5.5분)
+        string[] lines = csvFile.text.Split('\n');
 
-        // Heavy 등급 (비용 350-400)
-        { "Enemy_heavy_mother", (60f, 480f) },      // 8:00 ~ 1:00 (7분)
-        { "Enemy_heavy_Gunship", (0f, 420f) },      // 7:00 ~ 0:00 (7분)
-    };
+        // 첫 줄은 헤더이므로 스킵
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+
+            string[] values = line.Split(',');
+            if (values.Length < 5) continue;
+
+            string enemyName = values[0].Trim();
+            float timeMin = float.Parse(values[3].Trim());
+            float timeMax = float.Parse(values[4].Trim());
+
+            timeRanges[enemyName] = (timeMin, timeMax);
+        }
+
+        isInitialized = true;
+        Debug.Log($"[EnemyTimeRangeData] Loaded {timeRanges.Count} enemy time ranges from CSV");
+    }
 
     /// <summary>
     /// 특정 시간에 해당 적을 스폰할 수 있는지 확인
@@ -47,6 +70,12 @@ public static class EnemyTimeRangeData
     /// <returns>스폰 가능 여부</returns>
     public static bool CanSpawnAtTime(string enemyName, float timeRemaining)
     {
+        if (!isInitialized || timeRanges == null)
+        {
+            Debug.LogError("[EnemyTimeRangeData] Not initialized!");
+            return false;
+        }
+
         if (!timeRanges.ContainsKey(enemyName))
         {
             Debug.LogWarning($"[EnemyTimeRangeData] Unknown enemy: {enemyName}");
@@ -65,6 +94,12 @@ public static class EnemyTimeRangeData
     public static List<string> GetSpawnableEnemiesAtTime(float timeRemaining)
     {
         List<string> result = new List<string>();
+
+        if (!isInitialized || timeRanges == null)
+        {
+            Debug.LogError("[EnemyTimeRangeData] Not initialized!");
+            return result;
+        }
 
         foreach (var kvp in timeRanges)
         {
@@ -89,14 +124,21 @@ public static class EnemyTimeRangeData
     /// <returns>시간 범위 정보가 존재하는지 여부</returns>
     public static bool GetTimeRange(string enemyName, out float min, out float max)
     {
+        min = 0f;
+        max = 0f;
+
+        if (!isInitialized || timeRanges == null)
+        {
+            Debug.LogError("[EnemyTimeRangeData] Not initialized!");
+            return false;
+        }
+
         if (timeRanges.ContainsKey(enemyName))
         {
             (min, max) = timeRanges[enemyName];
             return true;
         }
 
-        min = 0f;
-        max = 0f;
         return false;
     }
 
@@ -105,6 +147,12 @@ public static class EnemyTimeRangeData
     /// </summary>
     public static List<string> GetAllEnemyNames()
     {
+        if (!isInitialized || timeRanges == null)
+        {
+            Debug.LogError("[EnemyTimeRangeData] Not initialized!");
+            return new List<string>();
+        }
+
         return new List<string>(timeRanges.Keys);
     }
 
@@ -113,6 +161,12 @@ public static class EnemyTimeRangeData
     /// </summary>
     public static int GetSpawnableCount(float timeRemaining)
     {
+        if (!isInitialized || timeRanges == null)
+        {
+            Debug.LogError("[EnemyTimeRangeData] Not initialized!");
+            return 0;
+        }
+
         int count = 0;
         foreach (var kvp in timeRanges)
         {

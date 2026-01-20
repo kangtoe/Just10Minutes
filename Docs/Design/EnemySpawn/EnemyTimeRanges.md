@@ -1,6 +1,8 @@
 # 적 시간 범위 정의
 
 > **목적**: 시간 기반 스폰 시스템에서 각 적이 스폰 가능한 시간 범위를 정의합니다.
+>
+> **데이터 파일**: `Assets/Resources/Data/EnemyTimeRanges.csv`
 
 ## 핵심 개념
 
@@ -124,24 +126,27 @@
 
 ## 구현 참고
 
-### EnemyTimeRangeData.cs 구조
+### CSV 파일 형식
+**파일 위치**: `Assets/Resources/Data/EnemyTimeRanges.csv`
+
+```csv
+EnemyName,Tier,Cost,TimeMin,TimeMax,Comment
+Enemy_light_child,Light,20,660,840,14:00 ~ 11:00 (3분)
+Enemy_light_kido,Light,20,630,810,13:30 ~ 10:30 (3분)
+...
+```
+
+### CSV 편집 방법
+1. 엑셀이나 구글 시트에서 열기
+2. TimeMin, TimeMax 값 조정
+3. 저장 후 Unity 재실행
+
+### EnemyTimeRangeData.cs 사용법
 ```csharp
-private static Dictionary<string, (float min, float max)> timeRanges = new Dictionary<string, (float, float)>()
-{
-    { "Enemy_light_child", (660f, 840f) },
-    { "Enemy_light_kido", (630f, 810f) },
-    { "Enemy_light_thunder", (600f, 780f) },
-    { "Enemy_light_shield", (540f, 750f) },
-    { "Enemy_mid_Ghost", (420f, 720f) },
-    { "Enemy_mid_Hornet", (390f, 690f) },
-    { "Enemy_mid_master", (360f, 660f) },
-    { "Enemy_mid_Knight", (300f, 630f) },
-    { "Enemy_mid_sniper", (270f, 600f) },
-    { "Enemy_mid_tank", (240f, 570f) },
-    { "Enemy_mid_Spiral", (210f, 540f) },
-    { "Enemy_heavy_mother", (60f, 480f) },
-    { "Enemy_heavy_Gunship", (0f, 420f) },
-};
+// 자동으로 CSV에서 로드 (정적 생성자)
+// 사용 시:
+List<string> spawnableEnemies = EnemyTimeRangeData.GetSpawnableEnemiesAtTime(720f);
+bool canSpawn = EnemyTimeRangeData.CanSpawnAtTime("Enemy_light_child", 720f);
 ```
 
 ### 스폰 가능 여부 확인
