@@ -2,7 +2,7 @@
 
 > **목적**: 시간 기반 스폰 시스템에서 각 적이 스폰 가능한 시간 범위를 정의합니다.
 >
-> **데이터 파일**: `Assets/Resources/Data/EnemyTimeRanges.csv`
+> **설정 방법**: TimeBasedSpawnManager Inspector에서 직렬화 구조체 배열로 관리
 
 ## 핵심 개념
 
@@ -126,24 +126,47 @@
 
 ## 구현 참고
 
-### CSV 파일 형식
-**파일 위치**: `Assets/Resources/Data/EnemyTimeRanges.csv`
+### Inspector 설정 방법
+**위치**: TimeBasedSpawnManager GameObject → Inspector
 
-```csv
-EnemyName,Tier,Cost,TimeMin,TimeMax,Comment
-Enemy_light_child,Light,20,660,840,14:00 ~ 11:00 (3분)
-Enemy_light_kido,Light,20,630,810,13:30 ~ 10:30 (3분)
+1. TimeBasedSpawnManager 컴포넌트 찾기
+2. "Enemy Time Ranges" 섹션
+3. Size: 13 (적 개수)
+4. 각 Element 설정:
+   - Enemy Prefab: 프리팹 드래그 앤 드롭
+   - Time Min: 최소 시간 (초)
+   - Time Max: 최대 시간 (초)
+
+**예시**:
+```
+Element 0:
+  - Enemy Prefab: Enemy_light_child
+  - Time Min: 660
+  - Time Max: 840
+
+Element 1:
+  - Enemy Prefab: Enemy_light_kido
+  - Time Min: 630
+  - Time Max: 810
 ...
 ```
 
-### CSV 편집 방법
-1. 엑셀이나 구글 시트에서 열기
-2. TimeMin, TimeMax 값 조정
-3. 저장 후 Unity 재실행
+### EnemyTimeRange 구조체
+```csharp
+[System.Serializable]
+public class EnemyTimeRange
+{
+    public EnemyShip enemyPrefab;  // 프리팹 직접 참조
+    public float timeMin;
+    public float timeMax;
+}
+```
 
 ### EnemyTimeRangeData.cs 사용법
 ```csharp
-// 자동으로 CSV에서 로드 (정적 생성자)
+// TimeBasedSpawnManager에서 자동 초기화
+EnemyTimeRangeData.Initialize(enemyTimeRanges);
+
 // 사용 시:
 List<string> spawnableEnemies = EnemyTimeRangeData.GetSpawnableEnemiesAtTime(720f);
 bool canSpawn = EnemyTimeRangeData.CanSpawnAtTime("Enemy_light_child", 720f);

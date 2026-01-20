@@ -11,12 +11,11 @@ using UnityEngine;
 /// </summary>
 public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 {
-    [Header("=== Enemy Prefabs ===")]
-    [SerializeField] private EnemyShip[] enemyPrefabs;
+    [Header("=== Enemy Time Ranges ===")]
+    [SerializeField] private EnemyTimeRange[] enemyTimeRanges;
 
     [Header("=== Timer Settings ===")]
     [SerializeField] private float gameDuration = 840f; // 14분
-    private float gameTimeRemaining;
     private bool isRunning = false;
 
     [Header("=== Budget Settings ===")]
@@ -43,23 +42,35 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 
     private void InitializeSystem()
     {
-        // 타이머 초기화
-        gameTimeRemaining = gameDuration;
-
         // 예산 초기화
         currentBudget = initialBudget;
         UpdateBudgetAccumulationRate();
 
-        // 적 프리팹 레지스트리 초기화 (ProceduralWaveGenerator 활용)
-        if (enemyPrefabs != null && enemyPrefabs.Length > 0)
+        // 적 시간 범위 데이터 초기화
+        if (enemyTimeRanges != null && enemyTimeRanges.Length > 0)
         {
-            ProceduralWaveGenerator.Initialize(enemyPrefabs);
+            EnemyTimeRangeData.Initialize(enemyTimeRanges);
             if (showDebugLogs)
-                Debug.Log($"[TimeBasedSpawn] Initialized with {enemyPrefabs.Length} enemy prefabs");
+                Debug.Log($"[TimeBasedSpawn] Initialized {enemyTimeRanges.Length} enemy time ranges");
+
+            // 적 프리팹 레지스트리 초기화 (enemyTimeRanges에서 추출)
+            EnemyShip[] enemyPrefabs = ExtractEnemyPrefabs(enemyTimeRanges);
+            if (enemyPrefabs.Length > 0)
+            {
+                ProceduralWaveGenerator.Initialize(enemyPrefabs);
+                if (showDebugLogs)
+                    Debug.Log($"[TimeBasedSpawn] Initialized with {enemyPrefabs.Length} enemy prefabs");
+            }
         }
         else
         {
-            Debug.LogError("[TimeBasedSpawn] Enemy prefabs not assigned!");
+            Debug.LogError("[TimeBasedSpawn] Enemy time ranges not assigned!");
+        }
+
+        // TimeRecordManager 시작
+        if (TimeRecordManager.Instance != null)
+        {
+            TimeRecordManager.Instance.SetActiveCount(true);
         }
 
         // 초기 스폰 풀 갱신
@@ -71,14 +82,44 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
             Debug.Log($"[TimeBasedSpawn] System started - Duration: {gameDuration}s, Initial Budget: {initialBudget}");
     }
 
+    /// <summary>
+    /// EnemyTimeRange 배열에서 EnemyShip 프리팹 배열 추출
+    /// </summary>
+    private EnemyShip[] ExtractEnemyPrefabs(EnemyTimeRange[] ranges)
+    {
+        List<EnemyShip> prefabs = new List<EnemyShip>();
+        foreach (var range in ranges)
+        {
+            if (range.enemyPrefab != null)
+            {
+                prefabs.Add(range.enemyPrefab);
+            }
+        }
+        return prefabs.ToArray();
+    }
+
+    /// <summary>
+    /// TimeRecordManager의 count-up 시간을 기반으로 남은 시간 계산
+    /// </summary>
+    private float GetGameTimeRemaining()
+    {
+        if (TimeRecordManager.Instance == null) return gameDuration;
+        float elapsed = TimeRecordManager.Instance.TimeRecord;
+        return Mathf.Max(0f, gameDuration - elapsed);
+    }
+
     private void Update()
     {
         if (!isRunning) return;
 
         float deltaTime = Time.deltaTime;
 
-        // 1. 시간 감소
-        UpdateTimer(deltaTime);
+        // 1. 게임 종료 확인
+        if (GetGameTimeRemaining() <= 0f)
+        {
+            OnGameTimeEnd();
+            return;
+        }
 
         // 2. 예산 누적
         UpdateBudget(deltaTime);
@@ -99,17 +140,6 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     }
 
     #region Timer Management
-
-    private void UpdateTimer(float deltaTime)
-    {
-        gameTimeRemaining -= deltaTime;
-
-        if (gameTimeRemaining < 0f)
-        {
-            gameTimeRemaining = 0f;
-            OnGameTimeEnd();
-        }
-    }
 
     private void OnGameTimeEnd()
     {
@@ -155,8 +185,9 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 
     private int GetCurrentPhase()
     {
-        if (gameTimeRemaining > 600f) return 1; // Phase 1: 840~600초
-        if (gameTimeRemaining > 360f) return 2; // Phase 2: 600~360초
+        float timeRemaining = GetGameTimeRemaining();
+        if (timeRemaining > 600f) return 1; // Phase 1: 840~600초
+        if (timeRemaining > 360f) return 2; // Phase 2: 600~360초
         return 3; // Phase 3: 360~0초
     }
 
@@ -166,13 +197,14 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 
     private void RefreshSpawnPool()
     {
-        List<string> newPool = EnemyTimeRangeData.GetSpawnableEnemiesAtTime(gameTimeRemaining);
+        float timeRemaining = GetGameTimeRemaining();
+        List<string> newPool = EnemyTimeRangeData.GetSpawnableEnemiesAtTime(timeRemaining);
 
         if (newPool.Count != currentSpawnPool.Count)
         {
             currentSpawnPool = newPool;
             if (showDebugLogs)
-                Debug.Log($"[SpawnPool] Refreshed at {FormatTime(gameTimeRemaining)} - {currentSpawnPool.Count} enemies available");
+                Debug.Log($"[SpawnPool] Refreshed at {FormatTime(timeRemaining)} - {currentSpawnPool.Count} enemies available");
         }
         else
         {
@@ -200,7 +232,7 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         if (currentSpawnPool.Count == 0)
         {
             if (showDebugLogs)
-                Debug.LogWarning($"[Spawn] No enemies available in spawn pool at {FormatTime(gameTimeRemaining)}");
+                Debug.LogWarning($"[Spawn] No enemies available in spawn pool at {FormatTime(GetGameTimeRemaining())}");
             return;
         }
 
@@ -254,10 +286,10 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 
     private EnemyShip LoadEnemyPrefab(string prefabName)
     {
-        foreach (EnemyShip prefab in enemyPrefabs)
+        foreach (var range in enemyTimeRanges)
         {
-            if (prefab.name == prefabName)
-                return prefab;
+            if (range.enemyPrefab != null && range.enemyPrefab.name == prefabName)
+                return range.enemyPrefab;
         }
         return null;
     }
@@ -271,12 +303,10 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         // UiManager를 통해 UI 업데이트
         if (UiManager.Instance != null)
         {
-            // 시간 표시 (MM:SS 형식)
-            UiManager.Instance.SetTimeRecordText((int)gameTimeRemaining);
-
-            // 예산 및 Phase 디버그 텍스트
+            // 시간 표시는 TimeRecordManager가 담당
+            // 예산 및 Phase 디버그 텍스트만 업데이트
             UiManager.Instance.SetBudgetDebugText(currentBudget, budgetAccumulationRate);
-            UiManager.Instance.SetPhaseDebugText(GetCurrentPhase(), gameTimeRemaining);
+            UiManager.Instance.SetPhaseDebugText(GetCurrentPhase(), GetGameTimeRemaining());
         }
     }
 
@@ -308,7 +338,7 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     /// </summary>
     public (float timeRemaining, float budget, int phase, int poolSize) GetStatus()
     {
-        return (gameTimeRemaining, currentBudget, GetCurrentPhase(), currentSpawnPool.Count);
+        return (GetGameTimeRemaining(), currentBudget, GetCurrentPhase(), currentSpawnPool.Count);
     }
 
     #endregion

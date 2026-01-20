@@ -2,9 +2,31 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 각 적의 스폰 가능한 시간 범위를 정의하고 관리하는 정적 클래스
+/// 적의 스폰 가능한 시간 범위를 나타내는 직렬화 가능한 구조체
+/// </summary>
+[System.Serializable]
+public class EnemyTimeRange
+{
+    [Tooltip("적 프리팹")]
+    public EnemyShip enemyPrefab;
+
+    [Tooltip("스폰 가능한 최소 시간 (초, 작은 값 = 게임 후반)")]
+    public float timeMin;
+
+    [Tooltip("스폰 가능한 최대 시간 (초, 큰 값 = 게임 초반)")]
+    public float timeMax;
+
+    public EnemyTimeRange(EnemyShip prefab, float min, float max)
+    {
+        enemyPrefab = prefab;
+        timeMin = min;
+        timeMax = max;
+    }
+}
+
+/// <summary>
+/// 각 적의 스폰 가능한 시간 범위를 관리하는 정적 클래스
 /// 시간 기반 스폰 시스템에서 사용
-/// CSV 파일(Resources/Data/EnemyTimeRanges.csv)에서 데이터 로드
 /// </summary>
 public static class EnemyTimeRangeData
 {
@@ -19,47 +41,32 @@ public static class EnemyTimeRangeData
     private static bool isInitialized = false;
 
     /// <summary>
-    /// 정적 생성자: CSV 파일에서 데이터 로드
+    /// Inspector에서 설정한 배열로 초기화
     /// </summary>
-    static EnemyTimeRangeData()
-    {
-        LoadFromCSV();
-    }
-
-    /// <summary>
-    /// CSV 파일에서 시간 범위 데이터 로드
-    /// </summary>
-    private static void LoadFromCSV()
+    public static void Initialize(EnemyTimeRange[] ranges)
     {
         timeRanges = new Dictionary<string, (float, float)>();
 
-        TextAsset csvFile = Resources.Load<TextAsset>("Data/EnemyTimeRanges");
-        if (csvFile == null)
+        if (ranges == null || ranges.Length == 0)
         {
-            Debug.LogError("[EnemyTimeRangeData] CSV file not found at Resources/Data/EnemyTimeRanges.csv");
+            Debug.LogError("[EnemyTimeRangeData] No time ranges provided!");
             return;
         }
 
-        string[] lines = csvFile.text.Split('\n');
-
-        // 첫 줄은 헤더이므로 스킵
-        for (int i = 1; i < lines.Length; i++)
+        foreach (var range in ranges)
         {
-            string line = lines[i].Trim();
-            if (string.IsNullOrEmpty(line)) continue;
+            if (range.enemyPrefab == null)
+            {
+                Debug.LogWarning("[EnemyTimeRangeData] Skipping range with null enemy prefab");
+                continue;
+            }
 
-            string[] values = line.Split(',');
-            if (values.Length < 5) continue;
-
-            string enemyName = values[0].Trim();
-            float timeMin = float.Parse(values[3].Trim());
-            float timeMax = float.Parse(values[4].Trim());
-
-            timeRanges[enemyName] = (timeMin, timeMax);
+            string enemyName = range.enemyPrefab.name;
+            timeRanges[enemyName] = (range.timeMin, range.timeMax);
         }
 
         isInitialized = true;
-        Debug.Log($"[EnemyTimeRangeData] Loaded {timeRanges.Count} enemy time ranges from CSV");
+        Debug.Log($"[EnemyTimeRangeData] Initialized with {timeRanges.Count} enemy time ranges");
     }
 
     /// <summary>
