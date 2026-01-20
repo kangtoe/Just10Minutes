@@ -178,40 +178,10 @@
 
 ---
 
-## 구현 계획
+## 구현
 
-### Phase 1: 기본 프레임워크
-- 시간 범위 기반 스폰 풀 구성
-- 예산 누적 시스템
-- 주기적 스폰 체크
-
-### Phase 2: 스폰 로직
-- 건너뛰기 시스템
-- 강제 스폰 타이머
-- 예산 기반 적 선택
-
-### Phase 3: 존재 점수 추적
-- 존재 점수 관리
-- 목표 곡선 정의
-- 디버그 UI
-
-### Phase 4: 동적 난이도 조정
-- 차이율 기반 조정
-- 범위 제한 및 Lerp
-- 설정 옵션
-
-### Phase 5: 밸런싱 & 최적화
-- 플레이테스트
-- 파라미터 튜닝
-- 성능 최적화
-- 보스 통합
-
-### Phase 6: 폴리싱
-- UI/UX 개선
-- 피드백 강화
-- 문서화
-
-**예상 개발 기간**: 약 6주
+구현 계획은 별도 문서를 참고하세요:
+- [구현 단계 (Phases)](Phases.md)
 
 ---
 
@@ -233,9 +203,10 @@
 ## 참고 자료
 
 ### 내부 문서
-- [Vampire Survivors 스폰 시스템 분석](VampireSurvivors_SpawnSystem.md)
-- [ProceduralWaveGeneration.md](ProceduralWaveGeneration.md)
-- [WaveSystem.md](WaveSystem.md)
+- [EnemySpawnScaling.md](EnemySpawnScaling.md) - 적 스탯 스케일링 시스템
+
+### 참고 문서
+- [Vampire Survivors 스폰 시스템 분석](../../References/VampireSurvivors_SpawnSystem.md)
 
 ### 외부 자료
 - [Vampire Survivors Wiki - Timed Enemy Spawn](https://vampire-survivors.fandom.com/wiki/Timed_Enemy_Spawn)
