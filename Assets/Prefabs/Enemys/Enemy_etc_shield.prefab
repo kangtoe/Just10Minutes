@@ -48,7 +48,7 @@ GameObject:
   - component: {fileID: 2902183979011940903}
   - component: {fileID: 3229148728370288071}
   m_Layer: 8
-  m_Name: Enemy_light_shield
+  m_Name: Enemy_etc_shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
