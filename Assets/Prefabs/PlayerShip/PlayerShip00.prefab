@@ -282,6 +282,8 @@ MonoBehaviour:
   shooter: {fileID: 1160230098051440518}
   impactable: {fileID: 5180353278583599535}
   damageable: {fileID: 6824758561421440069}
+  moveStandard: {fileID: 3108423768624995501}
+  rotateByInput: {fileID: 4574412108710571623}
 --- !u!114 &1160230098051440518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -367,9 +369,29 @@ MonoBehaviour:
   onDamaged:
     m_PersistentCalls:
       m_Calls: []
-  maxHealth: 100
+  onDurabilityChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onShieldDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+  onShieldChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onShieldDepleted:
+    m_PersistentCalls:
+      m_Calls: []
+  maxDurability: 100
+  currDurability: 0
+  durabilityRegenRate: 0
+  durabilityRegenDelay: 5
+  maxShield: 100
+  currShield: 0
+  shieldRegenRate: 20
+  shieldRegenDelay: 2
   deathSound: {fileID: 8300000, guid: cc7da5800bd3b4cb4b196ef674bee2e5, type: 3}
   hitSound: {fileID: 8300000, guid: d374ec2186de7234bb3fe0828ee1d823, type: 3}
+  shieldHitSound: {fileID: 0}
 --- !u!114 &4574412108710571623
 MonoBehaviour:
   m_ObjectHideFlags: 0

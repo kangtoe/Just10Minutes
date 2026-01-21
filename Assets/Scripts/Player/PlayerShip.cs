@@ -9,6 +9,8 @@ public class PlayerShip : MonoBehaviour
     [SerializeField] ShooterBase shooter;
     [SerializeField] Impactable impactable;
     [SerializeField] Damageable damageable;
+    [SerializeField] MoveStandard moveStandard;
+    [SerializeField] RotateByInput rotateByInput;
 
     Rigidbody2D rbody;
 
@@ -20,6 +22,7 @@ public class PlayerShip : MonoBehaviour
     void Start()
     {
         rbody = GetComponent<Rigidbody2D>();
+
         Initialize();
 
         // 피해 이벤트 (게임 메카닉용 - 화면 흔들림)
@@ -78,6 +81,10 @@ public class PlayerShip : MonoBehaviour
                 rb.mass = expectedMass;
             }
         }
+
+        // 5. 이동/회전 속도를 PlayerStats 값으로 설정
+        moveStandard.SetMovePower(PlayerStats.Instance.moveSpeed);
+        rotateByInput.SetRotationSpeed(PlayerStats.Instance.rotateSpeed);
     }
 
 
@@ -98,6 +105,40 @@ public class PlayerShip : MonoBehaviour
 
         damageable.InitDurability();
         UpdateDurabilityUI();
+    }
+
+    // PlayerStats의 값을 컴포넌트에 반영 (업그레이드 시 사용)
+    public void ApplyStatFromPlayerStats(UpgradeField field)
+    {
+        switch (field)
+        {
+            case UpgradeField.MaxDurability:
+                damageable.SetMaxDurability(PlayerStats.Instance.maxDurability, true);
+                UpdateDurabilityUI();
+                break;
+            case UpgradeField.MaxShield:
+                damageable.SetMaxShield(PlayerStats.Instance.maxShield, true);
+                UpdateDurabilityUI();
+                break;
+            case UpgradeField.ShieldRegenRate:
+                damageable.SetShieldRegenRate(PlayerStats.Instance.shieldRegenRate);
+                break;
+            case UpgradeField.ShieldRegenDelay:
+                damageable.SetShieldRegenDelay(PlayerStats.Instance.shieldRegenDelay);
+                break;
+            case UpgradeField.OnImpact:
+                impactable.SetDamageAmount(PlayerStats.Instance.onImpact);
+                break;
+            case UpgradeField.MultiShot:
+                shooter.SetMultiShot(PlayerStats.Instance.multiShot);
+                break;
+            case UpgradeField.MoveSpeed:
+                moveStandard.SetMovePower(PlayerStats.Instance.moveSpeed);
+                break;
+            case UpgradeField.RotateSpeed:
+                rotateByInput.SetRotationSpeed(PlayerStats.Instance.rotateSpeed);
+                break;
+        }
     }
 
     public void SetSystem(UpgradeField _type, float amount)
@@ -128,6 +169,14 @@ public class PlayerShip : MonoBehaviour
             // 사격
             case UpgradeField.MultiShot:
                 shooter.SetMultiShot((int)amount);
+                break;
+
+            // 이동
+            case UpgradeField.MoveSpeed:
+                moveStandard.SetMovePower(amount);
+                break;
+            case UpgradeField.RotateSpeed:
+                rotateByInput.SetRotationSpeed(amount);
                 break;
         }
     }

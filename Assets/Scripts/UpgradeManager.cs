@@ -79,15 +79,9 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
         // PlayerStats에 증분 적용
         PlayerStats.Instance.ApplyUpgrade(option.field, option.incrementValue);
 
-        // 내구도/실드 업그레이드 시 현재 값도 함께 증가 (이벤트를 통해 UI 자동 갱신)
-        if (option.field == UpgradeField.MaxDurability)
-        {
-            GameManager.Instance.PlayerShip.Damageable.ModifyDurability(option.incrementValue);
-        }
-        else if (option.field == UpgradeField.MaxShield)
-        {
-            GameManager.Instance.PlayerShip.Damageable.ModifyShield(option.incrementValue);
-        }
+        // PlayerShip의 컴포넌트에 업데이트된 스텟 반영
+        // (SetMaxDurability/SetMaxShield의 adjustCurrent 매개변수가 현재 값 조정을 처리)
+        GameManager.Instance.PlayerShip.ApplyStatFromPlayerStats(option.field);
 
         // 포인트 차감
         PlayerStats.Instance.upgradePoint--;

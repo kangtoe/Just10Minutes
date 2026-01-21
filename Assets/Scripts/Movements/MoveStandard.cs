@@ -29,6 +29,12 @@ public class MoveStandard : MonoBehaviour
     {
         return isPlayerShip ? PlayerStats.Instance.mass : rbody.mass;
     }
+
+    // PlayerShip에서 이동 속도를 설정할 수 있도록 public setter 제공
+    public void SetMovePower(float power)
+    {
+        movePower = power;
+    }
     
     protected void FixedUpdate()
     {

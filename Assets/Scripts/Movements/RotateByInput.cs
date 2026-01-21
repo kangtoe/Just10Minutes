@@ -18,6 +18,12 @@ public class RotateByInput : MonoBehaviour
         rbody = GetComponent<Rigidbody2D>();
     }
 
+    // PlayerShip에서 회전 속도를 설정할 수 있도록 public setter 제공
+    public void SetRotationSpeed(float speed)
+    {
+        rotationSpeed = speed;
+    }
+
     void FixedUpdate()
     {
         float rotateInput = InputManager.Instance.RotateInput;
