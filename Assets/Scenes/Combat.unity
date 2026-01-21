@@ -2007,8 +2007,10 @@ MonoBehaviour:
   maxBudgetRate: 25
   budgetRateRampUpTime: 840
   spawnCheckInterval: 1
+  skipProbability: 0.25
+  maxSpawnSkipTime: 5
   poolRefreshInterval: 5
-  showDebugLogs: 1
+  showDebugLogs: 0
 --- !u!4 &882534907
 Transform:
   m_ObjectHideFlags: 0

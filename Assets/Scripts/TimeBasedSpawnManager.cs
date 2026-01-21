@@ -78,10 +78,16 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     [SerializeField] private float spawnCheckInterval = 1f;
     private float timeSinceLastCheck = 0f;
 
+    [Header("Skip System")]
+    [SerializeField, Range(0f, 0.99f)] private float skipProbability = 0.3f; // 건너뛰기 확률
+    [SerializeField] private float maxSpawnSkipTime = 5f; // 강제 스폰까지의 최대 대기 시간 (초)
+    private float timeSinceLastSpawn = 0f;
+
     [Header("=== Spawn Pool Settings ===")]
-    private List<string> currentSpawnPool = new List<string>();
     [SerializeField] private float poolRefreshInterval = 5f;
     private float timeSinceLastPoolRefresh = 0f;
+    private List<string> currentSpawnPool = new List<string>();
+    
 
     [Header("=== Debug ===")]
     [SerializeField] private bool showDebugLogs = true;
@@ -174,7 +180,10 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         // 2. 예산 누적
         UpdateBudget(deltaTime);
 
-        // 3. 스폰 풀 갱신 (주기적)
+        // 3. 강제 스폰 타이머 업데이트
+        timeSinceLastSpawn += deltaTime;
+
+        // 4. 스폰 풀 갱신 (주기적)
         timeSinceLastPoolRefresh += deltaTime;
         if (timeSinceLastPoolRefresh >= poolRefreshInterval)
         {
@@ -182,10 +191,10 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
             timeSinceLastPoolRefresh = 0f;
         }
 
-        // 4. 스폰 체크 (주기적)
+        // 5. 스폰 체크 (주기적)
         UpdateSpawnCheck(deltaTime);
 
-        // 5. UI 업데이트
+        // 6. UI 업데이트
         UpdateUI();
     }
 
@@ -291,6 +300,18 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
             return;
         }
 
+        // 강제 스폰 체크: MaxIdleTime 도달 여부
+        bool forceSpawn = timeSinceLastSpawn >= maxSpawnSkipTime;
+
+        // 건너뛰기 체크 (강제 스폰이 아닐 때만)
+        if (!forceSpawn && Random.value < skipProbability)
+        {
+            // 스폰 건너뛰기 (예산 유지)
+            if (showDebugLogs)
+                Debug.Log($"[Spawn] Skipped (Probability: {skipProbability * 100}%, Idle Time: {timeSinceLastSpawn:F1}s)");
+            return;
+        }
+
         // 랜덤 선택
         string selectedEnemy = affordableEnemies[Random.Range(0, affordableEnemies.Count)];
         int enemyCost = EnemyCostData.GetCost(selectedEnemy);
@@ -301,8 +322,14 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         // 예산 소모
         currentBudget -= enemyCost;
 
+        // 마지막 스폰 시간 초기화
+        timeSinceLastSpawn = 0f;
+
         if (showDebugLogs)
-            Debug.Log($"[Spawn] {selectedEnemy} spawned (Cost: {enemyCost}, Remaining Budget: {currentBudget:F0})");
+        {
+            string forceFlag = forceSpawn ? " [FORCED]" : "";
+            Debug.Log($"[Spawn] {selectedEnemy} spawned{forceFlag} (Cost: {enemyCost}, Remaining Budget: {currentBudget:F0})");
+        }
     }
 
     private void SpawnEnemy(string enemyName)
