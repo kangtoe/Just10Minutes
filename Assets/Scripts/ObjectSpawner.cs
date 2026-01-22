@@ -4,102 +4,32 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+/// <summary>
+/// 화면 가장자리에서 오브젝트를 스폰하는 싱글톤 매니저
+/// - 스폰 위치: 화면 4방향 가장자리 (Up, Down, Left, Right, Random)
+/// - 스폰 회전: 기본적으로 화면 중앙을 바라보도록 설정 (lookCenter 옵션)
+/// - 다중 스폰: 고정 간격 또는 랜덤 위치로 여러 개 스폰 가능
+/// - 겹침 방지: 기존 오브젝트와 최소 거리 유지 (랜덤 스폰)
+/// </summary>
 public class ObjectSpawner : MonoSingleton<ObjectSpawner>
 {
+    #region Fields & Properties
+
+    // 스폰된 오브젝트 목록
     List<GameObject> spawned = new();
-    List<GameObject> Spawned
-    {
-        get {
-            for (int i = spawned.Count - 1; i >= 0; i--)
-            {
-                if (!spawned[i]) spawned.RemoveAt(i);
-            }
-            return spawned;
-        }
-    }
 
-    private void Start()
-    {
-        spawned.Add(GameManager.Instance.PlayerShip.gameObject);
-    }
+    #endregion
 
-    Vector2 GetObjectBoundSize(GameObject obj)
-    {
-        GameObject instance = Instantiate(obj);
-        Collider2D collider = instance.GetComponentInChildren<Collider2D>();
-        Vector2 vec = collider.bounds.size;
-
-        instance.SetActive(false);
-        Destroy(instance);
-
-        return vec;        
-    }
-
-    void SpawnObject(GameObject objectPrefab, (Vector2, Quaternion) pointAndRotation)
-    {
-        if (objectPrefab == null)
-        {
-            Debug.Log("enemyPrefab is null");
-        }       
-
-        GameObject go = Instantiate(objectPrefab);
-        var (pos, rot) = pointAndRotation;
-
-        go.transform.position = pos;
-        go.transform.rotation = rot;
-        spawned.Add(go);
-    }
-
-    void SpawnObjectsAtFixed(GameObject objectPrefab, Edge spawnSide, int count, float spawnInterval)
-    {        
-        IEnumerator Cr()
-        {
-            for (int i = 1; i <= count; i++)
-            {
-                float lengthRatio = (float)i / (count + 1);
-                var (pos, rot) = GetSpawnPointAndRotation(objectPrefab, spawnSide, lengthRatio, false);
-                SpawnObject(objectPrefab, (pos, rot));                
-
-                yield return new WaitForSeconds(spawnInterval);
-            }
-        }
-
-        StartCoroutine(Cr());
-    }
-
-    void SpawnObjectsRandomly(GameObject objectPrefab, int count, float spawnInterval)
-    {        
-        IEnumerator Cr()
-        {
-            for (int i = 1; i <= count; i++)
-            {                
-                var pointAndRotation = GetRandomPointAndRotation(objectPrefab, Spawned);
-                SpawnObject(objectPrefab, pointAndRotation);
-
-                yield return new WaitForSeconds(spawnInterval);
-            }
-        }
-
-        StartCoroutine(Cr());
-    }
-
-    public void SpawnObjects(GameObject objectPrefab, Edge spawnSide, int count, float spawnInterval)
-    {
-        if (spawnSide == Edge.Random)
-        {
-            if (spawnInterval == 0) spawnInterval = 0.02f;
-            SpawnObjectsRandomly(objectPrefab, count, spawnInterval);
-        }
-        else
-        {
-            SpawnObjectsAtFixed(objectPrefab, spawnSide, count, spawnInterval);
-        }
-    }
+    #region Public API
 
     /// <summary>
-    /// 단일 오브젝트를 즉시 스폰 (웨이브 시스템용)
+    /// 단일 오브젝트를 즉시 스폰 (시간 기반 스폰 시스템용)
     /// </summary>
-    public GameObject SpawnObject(GameObject objectPrefab, Edge spawnSide)
+    /// <param name="objectPrefab">스폰할 프리팹</param>
+    /// <param name="spawnSide">스폰할 Edge</param>
+    /// <param name="lookCenter">중앙을 바라볼지 여부</param>
+    /// <param name="lengthRatio">Edge 내 위치 비율 (0~1), null이면 랜덤</param>
+    public GameObject SpawnObject(GameObject objectPrefab, Edge spawnSide, bool lookCenter = true, float? lengthRatio = null)
     {
         if (objectPrefab == null)
         {
@@ -107,7 +37,7 @@ public class ObjectSpawner : MonoSingleton<ObjectSpawner>
             return null;
         }
 
-        var (pos, rot) = GetSpawnPointAndRotation(objectPrefab, spawnSide);
+        var (pos, rot) = GetSpawnPointAndRotation(objectPrefab, spawnSide, lengthRatio, lookCenter);
         GameObject go = Instantiate(objectPrefab);
         go.transform.position = pos;
         go.transform.rotation = rot;
@@ -116,43 +46,22 @@ public class ObjectSpawner : MonoSingleton<ObjectSpawner>
         return go;
     }
 
-    (Vector2, Quaternion) GetRandomPointAndRotation(GameObject objectPrefab, List<GameObject> checkObjects = null)
-    {
-        bool CloseCheck(Vector3 pos, List<GameObject> checkObjects, float dist)
-        {
-            foreach (GameObject other in checkObjects)
-            {
-                if ((other.transform.position - pos).magnitude < dist) return true;
-            }
+    #endregion
 
-            return false;
-        }
+    #region Position & Rotation
 
-        float closeDist = 2;
-        int tryCount = 10;
-
-        Vector2 pos;
-        Quaternion rot;
-
-        do
-        {
-            (pos, rot) = GetSpawnPointAndRotation(objectPrefab);
-
-            tryCount--;
-            if (tryCount <= 0) break;
-        }
-        while (checkObjects != null && CloseCheck(pos, checkObjects, closeDist)); // 너무 가까우면 재배치      
-
-        return (pos, rot);
-    }    
-
-
+    /// <summary>
+    /// 화면 가장자리에서 스폰 위치와 회전 계산
+    /// </summary>
+    /// <param name="spawnSide">스폰할 가장자리 방향</param>
+    /// <param name="lengthRatio">가장자리 위치 비율 (0~1), null이면 랜덤</param>
+    /// <param name="lookCenter">true면 화면 중앙 방향으로 회전, false면 Edge 기본 방향</param>
     (Vector2, Quaternion) GetSpawnPointAndRotation(GameObject objectPrefab, Edge spawnSide = Edge.Random, float? lengthRatio = null, bool lookCenter = true)
     {
-        Vector2 boundSize = GetObjectBoundSize(objectPrefab) / 2;        
+        Vector2 boundSize = GetObjectBoundSize(objectPrefab) / 2;
 
         Vector3 offsetPos = Vector3.zero;
-        Vector3 viewPos;        
+        Vector3 viewPos;
         float angle;
 
         if (lengthRatio == null)
@@ -170,28 +79,28 @@ public class ObjectSpawner : MonoSingleton<ObjectSpawner>
             case Edge.Up:
                 viewPos = new Vector3(lengthRatio.Value, 1f, 1f);
                 offsetPos.y += boundSize.y;
-                angle = 180;                
+                angle = 180;
                 break;
 
             // 하부 가장자리
             case Edge.Down:
                 viewPos = new Vector3(1 - lengthRatio.Value, 0, 1f);
                 offsetPos.y -= boundSize.y;
-                angle = 0;                
+                angle = 0;
                 break;
 
             // 오른쪽 가장자리
             case Edge.Right:
                 viewPos = new Vector3(1, 1 - lengthRatio.Value, 1f);
                 offsetPos.x += boundSize.x;
-                angle = 90;                
+                angle = 90;
                 break;
 
             // 왼쪽 가장자리
             case Edge.Left:
                 viewPos = new Vector3(0, lengthRatio.Value, 1f);
                 offsetPos.x -= boundSize.x;
-                angle = 270;                
+                angle = 270;
                 break;
 
             default:
@@ -207,10 +116,36 @@ public class ObjectSpawner : MonoSingleton<ObjectSpawner>
         return (pos, rot);
     }
 
+    /// <summary>
+    /// 화면 중앙 근처(aroundRadius 범위 내)를 바라보는 각도 계산
+    /// 모든 적이 정확히 같은 지점을 향하지 않도록 약간의 랜덤 분산 적용
+    /// </summary>
     float GetCenterAroundLookAngle(Vector2 pos, float aroundRadius = 2)
     {
         Vector2 lookAt = Vector2.zero + Random.insideUnitCircle * aroundRadius;
-        Vector2 dir = lookAt - pos;        
-        return Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90;  
+        Vector2 dir = lookAt - pos;
+        return Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90;
     }
+
+    #endregion
+
+    #region Utility
+
+    /// <summary>
+    /// 오브젝트의 Collider 크기 측정 (임시 인스턴스 생성/파괴)
+    /// 스폰 위치가 화면 밖으로 벗어나지 않도록 오프셋 계산에 사용
+    /// </summary>
+    Vector2 GetObjectBoundSize(GameObject obj)
+    {
+        GameObject instance = Instantiate(obj);
+        Collider2D collider = instance.GetComponentInChildren<Collider2D>();
+        Vector2 vec = collider.bounds.size;
+
+        instance.SetActive(false);
+        Destroy(instance);
+
+        return vec;
+    }
+
+    #endregion
 }

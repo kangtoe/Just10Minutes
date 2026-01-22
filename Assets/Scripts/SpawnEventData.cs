@@ -11,25 +11,31 @@ public class SpawnEventData
 {
     [Header("Event Trigger")]
     [Tooltip("이벤트 발동 시간 (초, elapsed time 기준)")]
-    public float triggerTime = 180f; // 기본값: 3분
+    [SerializeField] private float triggerTime = 180f; // 기본값: 3분
 
     [Header("Spawn Settings")]
     [Tooltip("스폰 방향 (Random 선택 시 랜덤 방향에서 스폰)")]
-    public EdgeType spawnEdge = EdgeType.Top;
+    [SerializeField] private Edge spawnEdge = Edge.Up;
 
     [Tooltip("스폰할 적 구성")]
-    public List<EnemyComposition> enemyComposition = new List<EnemyComposition>();
+    [SerializeField] private List<EnemyComposition> enemyComposition = new();
 
     [Tooltip("스폰 간격 (초)")]
-    [Range(0.1f, 2f)]
-    public float spawnInterval = 0.2f;
+    [SerializeField, Range(0f, 5f)] private float spawnInterval = 0.2f;
 
     [Header("Event Behavior")]
     [Tooltip("이벤트 중 일반 스폰 일시 중지 여부")]
-    public bool pauseNormalSpawn = true;
+    [SerializeField] private bool pauseNormalSpawn = true;
 
     // 이벤트 실행 상태 (런타임)
     [NonSerialized] public bool hasTriggered = false;
+
+    // 프로퍼티
+    public float TriggerTime => triggerTime;
+    public Edge SpawnEdge => spawnEdge;
+    public List<EnemyComposition> EnemyComposition => enemyComposition;
+    public float SpawnInterval => spawnInterval;
+    public bool PauseNormalSpawn => pauseNormalSpawn;
 }
 
 /// <summary>
@@ -39,21 +45,12 @@ public class SpawnEventData
 public class EnemyComposition
 {
     [Tooltip("스폰할 적 프리팹")]
-    public EnemyShip enemyPrefab;
+    [SerializeField] private EnemyShip enemyPrefab;
 
     [Tooltip("스폰할 수량")]
-    [Min(1)]
-    public int spawnCount = 1;
-}
+    [SerializeField, Min(1)] private int spawnCount = 1;
 
-/// <summary>
-/// 스폰 방향 타입
-/// </summary>
-public enum EdgeType
-{
-    Top,
-    Bottom,
-    Left,
-    Right,
-    Random
+    // 프로퍼티
+    public EnemyShip EnemyPrefab => enemyPrefab;
+    public int SpawnCount => spawnCount;
 }
