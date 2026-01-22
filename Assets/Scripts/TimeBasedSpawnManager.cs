@@ -69,7 +69,7 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     [Header("Spawn Pool Settings")]
     [SerializeField] private float poolRefreshInterval = 1f;
     private float timeSinceLastPoolRefresh = 0f;
-    private List<string> currentSpawnPool = new List<string>();   
+    [SerializeField, ReadOnly] private List<EnemyShip> currentSpawnPool = new List<EnemyShip>();   
 
     [Header("Skip System")]
     [SerializeField, Range(0f, 0.99f)] private float skipProbability = 0.3f; // 건너뛰기 확률
@@ -102,7 +102,7 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     [Header("Budget Rate Multiplier Range (Dynamic Difficulty Adjustment)")]
     [SerializeField, Range(0.1f, 1.0f)] private float minBudgetRateMultiplier = 0.7f; // 최소 배율
     [SerializeField, Range(1.0f, 10.0f)] private float maxBudgetRateMultiplier = 1.3f; // 최대 배율
-    private float budgetRateMultiplier = 1f; // 현재 예산 증가율 배율
+    [SerializeField, ReadOnly]private float budgetRateMultiplier = 1f; // 현재 예산 증가율 배율
 
     private float baseBudgetRate = 10f; // 시간 기반 기본 예산 증가율 (조정 전)
 
@@ -278,7 +278,7 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     private void RefreshSpawnPool()
     {
         float elapsed = GetElapsedTime();
-        List<string> newPool = EnemyTimeRangeData.GetSpawnableEnemiesAtTime(elapsed);
+        List<EnemyShip> newPool = EnemyTimeRangeData.GetSpawnableEnemiesAtTime(elapsed);
 
         if (newPool.Count != currentSpawnPool.Count)
         {
@@ -317,13 +317,13 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         }
 
         // 현재 예산 내에서 스폰 가능한 적 필터링
-        List<string> affordableEnemies = new List<string>();
-        foreach (string enemyName in currentSpawnPool)
+        List<EnemyShip> affordableEnemies = new List<EnemyShip>();
+        foreach (EnemyShip enemyPrefab in currentSpawnPool)
         {
-            int cost = EnemyCostData.GetCost(enemyName);
+            int cost = EnemyCostData.GetCost(enemyPrefab.gameObject);
             if (cost <= currentBudget)
             {
-                affordableEnemies.Add(enemyName);
+                affordableEnemies.Add(enemyPrefab);
             }
         }
 
@@ -346,8 +346,8 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         }
 
         // 랜덤 선택
-        string selectedEnemy = affordableEnemies[Random.Range(0, affordableEnemies.Count)];
-        int enemyCost = EnemyCostData.GetCost(selectedEnemy);
+        EnemyShip selectedEnemy = affordableEnemies[Random.Range(0, affordableEnemies.Count)];
+        int enemyCost = EnemyCostData.GetCost(selectedEnemy.gameObject);
 
         // 스폰 실행
         SpawnEnemy(selectedEnemy);
@@ -362,17 +362,15 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         {
             string forceFlag = forceSpawn ? " [FORCED]" : "";
             Edge lastEdge = edgeSelector.GetDebugInfo().lastEdge;
-            Debug.Log($"[Spawn] {selectedEnemy} spawned{forceFlag} at {lastEdge} (Cost: {enemyCost}, Remaining Budget: {currentBudget:F0})");
+            Debug.Log($"[Spawn] {selectedEnemy.name} spawned{forceFlag} at {lastEdge} (Cost: {enemyCost}, Remaining Budget: {currentBudget:F0})");
         }
     }
 
-    private void SpawnEnemy(string enemyName)
+    private void SpawnEnemy(EnemyShip prefab)
     {
-        // 프리팹 찾기
-        EnemyShip prefab = LoadEnemyPrefab(enemyName);
         if (prefab == null)
         {
-            Debug.LogError($"[Spawn] Enemy prefab not found: {enemyName}");
+            Debug.LogError("[Spawn] Enemy prefab is null");
             return;
         }
 
@@ -394,16 +392,6 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
                 RegisterEnemy(enemyShip);
             }
         }
-    }
-
-    private EnemyShip LoadEnemyPrefab(string prefabName)
-    {
-        foreach (var range in enemyTimeRanges)
-        {
-            if (range.enemyPrefab != null && range.enemyPrefab.name == prefabName)
-                return range.enemyPrefab;
-        }
-        return null;
     }
 
     #endregion
@@ -479,7 +467,7 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 
     /// <summary>
     /// 연속적인 난이도 조정 계산 (매 프레임 실행)
-    /// 공식: 1 - (현재 존재 점수 - 목표 존재 점수) / 목표 존재 점수
+    /// 공식: 목표 존재 점수 / 현재 존재 점수
     /// </summary>
     private void PerformDifficultyAdjustment()
     {
@@ -490,8 +478,8 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
             return;
         }
 
-        // 연속적인 배율 계산
-        float calculatedMultiplier = 1f - (currentPresenceScore - target) / target;
+        // 연속적인 배율 계산 (비율 기반)
+        float calculatedMultiplier = target / Mathf.Max(currentPresenceScore, 1f);
 
         // 범위 제한 (min ~ max)
         budgetRateMultiplier = Mathf.Clamp(calculatedMultiplier, minBudgetRateMultiplier, maxBudgetRateMultiplier);

@@ -31,12 +31,12 @@ public class EnemyTimeRange
 public static class EnemyTimeRangeData
 {
     /// <summary>
-    /// 적 이름 -> (spawnTimeMin, spawnTimeMax) 매핑
+    /// 적 프리팹 -> (spawnTimeMin, spawnTimeMax) 매핑
     /// spawnTimeMin: 스폰 가능한 최소 시간 (작은 값, 게임 초반)
     /// spawnTimeMax: 스폰 가능한 최대 시간 (큰 값, 게임 후반)
     /// Elapsed time 방식: 0초(0:00) → 840초(14:00)
     /// </summary>
-    private static Dictionary<string, (float min, float max)> timeRanges;
+    private static Dictionary<EnemyShip, (float min, float max)> timeRanges;
 
     private static bool isInitialized = false;
 
@@ -45,7 +45,7 @@ public static class EnemyTimeRangeData
     /// </summary>
     public static void Initialize(EnemyTimeRange[] ranges)
     {
-        timeRanges = new Dictionary<string, (float, float)>();
+        timeRanges = new Dictionary<EnemyShip, (float, float)>();
 
         if (ranges == null || ranges.Length == 0)
         {
@@ -61,8 +61,7 @@ public static class EnemyTimeRangeData
                 continue;
             }
 
-            string enemyName = range.enemyPrefab.name;
-            timeRanges[enemyName] = (range.timeMin, range.timeMax);
+            timeRanges[range.enemyPrefab] = (range.timeMin, range.timeMax);
         }
 
         isInitialized = true;
@@ -72,10 +71,10 @@ public static class EnemyTimeRangeData
     /// <summary>
     /// 특정 시간에 해당 적을 스폰할 수 있는지 확인
     /// </summary>
-    /// <param name="enemyName">적 프리팹 이름 (예: "Enemy_light_child")</param>
+    /// <param name="enemyPrefab">적 프리팹</param>
     /// <param name="elapsedTime">경과 시간 (초 단위, 0 → 840)</param>
     /// <returns>스폰 가능 여부</returns>
-    public static bool CanSpawnAtTime(string enemyName, float elapsedTime)
+    public static bool CanSpawnAtTime(EnemyShip enemyPrefab, float elapsedTime)
     {
         if (!isInitialized || timeRanges == null)
         {
@@ -83,13 +82,19 @@ public static class EnemyTimeRangeData
             return false;
         }
 
-        if (!timeRanges.ContainsKey(enemyName))
+        if (enemyPrefab == null)
         {
-            Debug.LogWarning($"[EnemyTimeRangeData] Unknown enemy: {enemyName}");
+            Debug.LogWarning("[EnemyTimeRangeData] Null enemy prefab");
             return false;
         }
 
-        var (min, max) = timeRanges[enemyName];
+        if (!timeRanges.ContainsKey(enemyPrefab))
+        {
+            Debug.LogWarning($"[EnemyTimeRangeData] Unknown enemy: {enemyPrefab.name}");
+            return false;
+        }
+
+        var (min, max) = timeRanges[enemyPrefab];
         return elapsedTime >= min && elapsedTime <= max;
     }
 
@@ -97,10 +102,10 @@ public static class EnemyTimeRangeData
     /// 특정 시간에 스폰 가능한 모든 적 목록 반환
     /// </summary>
     /// <param name="elapsedTime">경과 시간 (초 단위, 0 → 840)</param>
-    /// <returns>스폰 가능한 적 이름 목록</returns>
-    public static List<string> GetSpawnableEnemiesAtTime(float elapsedTime)
+    /// <returns>스폰 가능한 적 프리팹 목록</returns>
+    public static List<EnemyShip> GetSpawnableEnemiesAtTime(float elapsedTime)
     {
-        List<string> result = new List<string>();
+        List<EnemyShip> result = new List<EnemyShip>();
 
         if (!isInitialized || timeRanges == null)
         {
@@ -110,12 +115,12 @@ public static class EnemyTimeRangeData
 
         foreach (var kvp in timeRanges)
         {
-            string enemyName = kvp.Key;
+            EnemyShip enemyPrefab = kvp.Key;
             var (min, max) = kvp.Value;
 
             if (elapsedTime >= min && elapsedTime <= max)
             {
-                result.Add(enemyName);
+                result.Add(enemyPrefab);
             }
         }
 
@@ -125,11 +130,11 @@ public static class EnemyTimeRangeData
     /// <summary>
     /// 특정 적의 시간 범위 정보 조회
     /// </summary>
-    /// <param name="enemyName">적 프리팹 이름</param>
+    /// <param name="enemyPrefab">적 프리팹</param>
     /// <param name="min">spawnTimeMin (out)</param>
     /// <param name="max">spawnTimeMax (out)</param>
     /// <returns>시간 범위 정보가 존재하는지 여부</returns>
-    public static bool GetTimeRange(string enemyName, out float min, out float max)
+    public static bool GetTimeRange(EnemyShip enemyPrefab, out float min, out float max)
     {
         min = 0f;
         max = 0f;
@@ -140,9 +145,15 @@ public static class EnemyTimeRangeData
             return false;
         }
 
-        if (timeRanges.ContainsKey(enemyName))
+        if (enemyPrefab == null)
         {
-            (min, max) = timeRanges[enemyName];
+            Debug.LogWarning("[EnemyTimeRangeData] Null enemy prefab");
+            return false;
+        }
+
+        if (timeRanges.ContainsKey(enemyPrefab))
+        {
+            (min, max) = timeRanges[enemyPrefab];
             return true;
         }
 
@@ -150,17 +161,17 @@ public static class EnemyTimeRangeData
     }
 
     /// <summary>
-    /// 등록된 모든 적 이름 목록 반환
+    /// 등록된 모든 적 프리팹 목록 반환
     /// </summary>
-    public static List<string> GetAllEnemyNames()
+    public static List<EnemyShip> GetAllEnemyPrefabs()
     {
         if (!isInitialized || timeRanges == null)
         {
             Debug.LogError("[EnemyTimeRangeData] Not initialized!");
-            return new List<string>();
+            return new List<EnemyShip>();
         }
 
-        return new List<string>(timeRanges.Keys);
+        return new List<EnemyShip>(timeRanges.Keys);
     }
 
     /// <summary>
