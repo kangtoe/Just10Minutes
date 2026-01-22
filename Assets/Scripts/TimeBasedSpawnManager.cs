@@ -572,7 +572,7 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     private IEnumerator StartSpawnEvent(SpawnEventData eventData)
     {
         if (showDebugLogs)
-            Debug.Log($"[SpawnEvent] Event started at {FormatTime(GetElapsedTime())} - Edge: {eventData.SpawnEdge}");
+            Debug.Log($"[SpawnEvent] Event started at {FormatTime(GetElapsedTime())} - Edge: {eventData.SpawnEdge}, Count: {eventData.SpawnCount}");
 
         // 일반 스폰 일시 중지 (옵션)
         if (eventData.PauseNormalSpawn)
@@ -580,32 +580,31 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
             isEventActive = true;
         }
 
-        // 적 구성 순서대로 스폰
-        foreach (EnemyComposition composition in eventData.EnemyComposition)
+        // 적 프리팹 확인
+        if (eventData.EnemyPrefab == null)
         {
-            if (composition.EnemyPrefab == null)
-            {
-                Debug.LogWarning("[SpawnEvent] Enemy prefab is null, skipping");
-                continue;
-            }
+            Debug.LogWarning("[SpawnEvent] Enemy prefab is null, aborting event");
+            if (eventData.PauseNormalSpawn)
+                isEventActive = false;
+            yield break;
+        }
 
-            int spawnCount = composition.SpawnCount;
+        int spawnCount = eventData.SpawnCount;
 
-            // 지정된 수량만큼 스폰
-            for (int i = 0; i < spawnCount; i++)
-            {
-                // Edge 결정 (Random일 경우 매번 랜덤 선택)
-                Edge spawnEdge = GetRandomEdge(eventData.SpawnEdge);
+        // 지정된 수량만큼 스폰
+        for (int i = 0; i < spawnCount; i++)
+        {
+            // Edge 결정 (Random일 경우 매번 랜덤 선택)
+            Edge spawnEdge = GetRandomEdge(eventData.SpawnEdge);
 
-                // 균등 배치 계산 (0~1 범위에서 균등하게 분산)
-                float lengthRatio = (i + 0.5f) / spawnCount;
+            // 균등 배치 계산 (0~1 범위에서 균등하게 분산)
+            float lengthRatio = (i + 0.5f) / spawnCount;
 
-                // 스폰 실행
-                SpawnEnemy(composition.EnemyPrefab, spawnEdge, lengthRatio);
+            // 스폰 실행
+            SpawnEnemy(eventData.EnemyPrefab, spawnEdge, lengthRatio);
 
-                // 스폰 간격 대기
-                yield return new WaitForSeconds(eventData.SpawnInterval);
-            }
+            // 스폰 간격 대기
+            yield return new WaitForSeconds(eventData.SpawnInterval);
         }
 
         // 이벤트 종료
