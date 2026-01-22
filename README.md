@@ -80,7 +80,7 @@ Asteroids 조작 + Vampire Survivors 업그레이드 시스템을 결합한 10�
 
 - [개발 로드맵](Docs/Roadmap.md)
 - [기술 문서](Docs/)
-  - [WaveSystem.md](Docs/Design/WaveSystem.md) - 시간 기반 스폰 시스템
+  - [스폰 시스템](Docs/Design/EnemySpawn/README.md) - 시간 기반 스폰 시스템
   - [UpgradeSystem.md](Docs/Design/UpgradeSystem.md) - 업그레이드 목록 및 빌드
   - [EnemyList.md](Docs/Design/EnemyList.md) - 적 스탯 및 분류
   - [Architecture.md](Docs/Architecture.md) - 프로젝트 아키텍처
