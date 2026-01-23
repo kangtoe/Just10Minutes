@@ -13,11 +13,11 @@ public class BoundaryDeath : BoundaryBase
         damageable = GetComponent<Damageable>();
     }
 
-    protected override void OnBoundaryExit(Vector3 currentPos, float boundaryX, float boundaryY)
+    protected override void OnEnterBoundaryZone(Vector3 currentPos, float boundaryX, float boundaryY)
     {
         if (damageable.IsDead) return;
 
-        // 화면 밖으로 벗어나면 즉시 사망
+        // 화면 밖으로 완전히 벗어나면 즉시 사망
         damageable.GetDamaged(int.MaxValue);
     }
 }

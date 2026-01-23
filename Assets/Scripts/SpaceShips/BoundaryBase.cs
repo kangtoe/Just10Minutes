@@ -10,6 +10,8 @@ public abstract class BoundaryBase : MonoBehaviour
     protected Vector2 shipSize;
 
     float checkInterval = 0.1f;
+    bool isInBoundaryZone = false;
+    bool hasExitedScreen = false;
 
     protected virtual void Start()
     {
@@ -41,18 +43,50 @@ public abstract class BoundaryBase : MonoBehaviour
 
     void CheckBoundary()
     {
-        float boundaryX = cameraSize.x / 2 + shipSize.x / 2;
-        float boundaryY = cameraSize.y / 2 + shipSize.y / 2;
         Vector3 pos = transform.position;
 
-        // 화면 밖으로 벗어났는지 체크
-        if (pos.x < -boundaryX || pos.x > boundaryX ||
-            pos.y < -boundaryY || pos.y > boundaryY)
+        // 화면 가장자리 (카메라 뷰포트 경계)
+        float screenEdgeX = cameraSize.x / 2;
+        float screenEdgeY = cameraSize.y / 2;
+
+        // 화면 완전 벗어남 (ship이 완전히 보이지 않는 지점)
+        float exitX = screenEdgeX + shipSize.x / 2;
+        float exitY = screenEdgeY + shipSize.y / 2;
+
+        bool inBoundaryZoneNow = (pos.x < -screenEdgeX || pos.x > screenEdgeX ||
+                                   pos.y < -screenEdgeY || pos.y > screenEdgeY);
+
+        bool exitedScreenNow = (pos.x < -exitX || pos.x > exitX ||
+                                pos.y < -exitY || pos.y > exitY);
+
+        // 경계 구역 진입 이벤트 (처음 화면 가장자리에 닿았을 때)
+        if (inBoundaryZoneNow && !isInBoundaryZone)
         {
-            OnBoundaryExit(pos, boundaryX, boundaryY);
+            isInBoundaryZone = true;
+            OnEnterBoundaryZone(pos, screenEdgeX, screenEdgeY);
+        }
+        // 경계 구역에서 벗어남 (다시 화면 안으로 돌아옴)
+        else if (!inBoundaryZoneNow && isInBoundaryZone)
+        {
+            isInBoundaryZone = false;
+            hasExitedScreen = false;
+        }
+
+        // 화면 완전 벗어남 이벤트 (처음 화면을 완전히 벗어났을 때)
+        if (exitedScreenNow && !hasExitedScreen)
+        {
+            hasExitedScreen = true;
+            OnExitScreen(pos, exitX, exitY);
         }
     }
 
-    // 경계를 벗어났을 때의 동작 (파생 클래스에서 구현)
-    protected abstract void OnBoundaryExit(Vector3 currentPos, float boundaryX, float boundaryY);
+    // 화면 가장자리에 닿았을 때의 동작 (필요시 파생 클래스에서 오버라이드)
+    protected virtual void OnEnterBoundaryZone(Vector3 currentPos, float boundaryX, float boundaryY)
+    {
+    }
+
+    // 화면을 완전히 벗어났을 때의 동작 (필요시 파생 클래스에서 오버라이드)
+    protected virtual void OnExitScreen(Vector3 currentPos, float boundaryX, float boundaryY)
+    {
+    }
 }

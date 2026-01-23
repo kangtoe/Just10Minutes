@@ -33,7 +33,7 @@ public class BoundaryJump : BoundaryBase
         //effect = GetComponentInChildren<TrailEffect>();
     }
 
-    protected override void OnBoundaryExit(Vector3 currentPos, float boundaryX, float boundaryY)
+    protected override void OnExitScreen(Vector3 currentPos, float boundaryX, float boundaryY)
     {
         if (Time.time < jumpableTime) return;
 
