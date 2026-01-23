@@ -521,16 +521,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17c074a5061a6614d972ad88c09a6aca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  diePrefab: {fileID: 8453916313859941413, guid: 2c4ffa33708eb654aa828b00090c03f1, type: 3}
+  diePrefab: {fileID: 8453916313859941413, guid: 89ea860bb9e49ef4283d796be03fb3a5, type: 3}
   onDead:
+    m_PersistentCalls:
+      m_Calls: []
+  onKilled:
     m_PersistentCalls:
       m_Calls: []
   onDamaged:
     m_PersistentCalls:
       m_Calls: []
-  maxHealth: 99999
+  onDurabilityChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onShieldDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+  onShieldChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onShieldDepleted:
+    m_PersistentCalls:
+      m_Calls: []
+  maxDurability: 100
+  currDurability: 0
+  durabilityRegenRate: 0
+  durabilityRegenDelay: 5
+  maxShield: 100
+  currShield: 0
+  shieldRegenRate: 20
+  shieldRegenDelay: 2
   deathSound: {fileID: 8300000, guid: cc7da5800bd3b4cb4b196ef674bee2e5, type: 3}
   hitSound: {fileID: 0}
+  shieldHitSound: {fileID: 0}
 --- !u!114 &8106430997078658073
 MonoBehaviour:
   m_ObjectHideFlags: 0
