@@ -204,6 +204,107 @@ public class GameStatsManager : MonoSingleton<GameStatsManager>
 
 ---
 
+### 2.4 스폰 시스템 동시성 문제 ⚠️
+
+**현재 문제**:
+- 적 스폰 시 경고 시스템으로 인해 실제 스폰이 `warningDelay`(1초) 지연됨
+- `SpawnEnemy()` → `StartCoroutine(SpawnEnemyDelayed())` 방식으로 구현
+- 이벤트/보스 스폰 시 for 루프로 여러 적을 스폰하는데, 각 스폰이 독립적인 코루틴으로 실행됨
+- 게임 상태 변경(예: 보스 격파)이 발생해도 **이미 시작된 코루틴들은 계속 실행**되어 의도하지 않은 스폰 발생
+
+**영향도**: 🟡 중 (게임플레이 로직)
+**우선순위**: P1 (단기)
+**예상 소요**: 해결 완료 (현재 우회 방안 적용)
+
+**현재 우회 방안** (적용 완료):
+```csharp
+// TimeBasedSpawnManager.cs
+
+// 1. for 루프에서 게임 상태 확인
+for (int i = 0; i < spawnCount; i++)
+{
+    if (GameManager.Instance.GameState == GameState.GameClear)
+    {
+        break; // 새로운 스폰 중단
+    }
+    SpawnEnemy(...);
+}
+
+// 2. 지연 코루틴에서도 게임 상태 확인
+private IEnumerator SpawnEnemyDelayed(...)
+{
+    yield return new WaitForSeconds(delay);
+
+    // 이미 시작된 코루틴도 실행 전 상태 확인
+    if (GameManager.Instance.GameState == GameState.GameClear)
+    {
+        yield break; // 지연 스폰 취소
+    }
+
+    SpawnEnemyImmediate(...);
+}
+```
+
+**근본적 해결 방안** (장기 개선):
+
+**옵션 A: 코루틴 추적 및 일괄 중단**
+```csharp
+private List<Coroutine> activeSpawnCoroutines = new List<Coroutine>();
+
+private void SpawnEnemy(...)
+{
+    var coroutine = StartCoroutine(SpawnEnemyDelayed(...));
+    activeSpawnCoroutines.Add(coroutine);
+}
+
+public void CancelAllPendingSpawns()
+{
+    foreach (var coroutine in activeSpawnCoroutines)
+    {
+        StopCoroutine(coroutine);
+    }
+    activeSpawnCoroutines.Clear();
+}
+```
+
+**옵션 B: CancellationToken 패턴**
+```csharp
+private CancellationTokenSource spawnCancellation = new CancellationTokenSource();
+
+private IEnumerator SpawnEnemyDelayed(CancellationToken token)
+{
+    yield return new WaitForSeconds(delay);
+
+    if (token.IsCancellationRequested)
+        yield break;
+
+    SpawnEnemyImmediate(...);
+}
+
+public void OnBossDefeated()
+{
+    spawnCancellation.Cancel(); // 모든 대기 중인 스폰 취소
+    spawnCancellation = new CancellationTokenSource();
+}
+```
+
+**옵션 C: 이벤트 기반 스폰 시스템**
+- 코루틴 대신 Update()에서 타이머 관리
+- 게임 상태 변경 시 즉시 타이머 클리어 가능
+- 동시성 문제 원천 차단
+
+**권장**: 옵션 C (이벤트 기반)
+- 코루틴 의존성 제거
+- 상태 관리 명확화
+- 다른 시스템에도 응용 가능
+
+**주의 사항**:
+- 코루틴 기반 지연 처리는 동시성 문제에 취약
+- 게임 상태 변경 시 실행 중인 코루틴들을 항상 고려할 것
+- 유사한 패턴(경고 → 지연 → 실행)을 사용하는 다른 시스템에도 동일한 이슈 존재 가능
+
+---
+
 ## 3. 코드 품질
 
 ### 3.1 단위 테스트 작성
