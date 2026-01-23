@@ -495,6 +495,14 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     {
         yield return new WaitForSeconds(delay);
 
+        // 게임 클리어 상태 확인 (보스 격파 시 지연 스폰 취소)
+        if (GameManager.Instance != null && GameManager.Instance.GameState == GameState.GameClear)
+        {
+            if (showDebugLogs)
+                Debug.Log($"[Spawn] Delayed spawn cancelled - Boss defeated");
+            yield break;
+        }
+
         EnemyShip spawnedEnemy = SpawnEnemyImmediate(prefab, spawnEdge, lookCenter, lengthRatio);
         onSpawned?.Invoke(spawnedEnemy);
     }
@@ -702,6 +710,14 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         // 지정된 수량만큼 스폰
         for (int i = 0; i < spawnCount; i++)
         {
+            // 게임 클리어 상태 확인 (보스 격파 시 스폰 중단)
+            if (GameManager.Instance != null && GameManager.Instance.GameState == GameState.GameClear)
+            {
+                if (showDebugLogs)
+                    Debug.Log($"[SpawnEvent] Event cancelled at index {i}/{spawnCount} - Boss defeated");
+                break;
+            }
+
             // Edge 결정 (Random일 경우 매번 랜덤 선택)
             Edge spawnEdge = GetRandomEdge(eventData.SpawnEdge);
 
