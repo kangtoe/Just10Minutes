@@ -34,7 +34,7 @@ public static class EnemyTimeRangeData
     /// 적 프리팹 -> (spawnTimeMin, spawnTimeMax) 매핑
     /// spawnTimeMin: 스폰 가능한 최소 시간 (작은 값, 게임 초반)
     /// spawnTimeMax: 스폰 가능한 최대 시간 (큰 값, 게임 후반)
-    /// Elapsed time 방식: 0초(0:00) → 840초(14:00)
+    /// Elapsed time 방식: 0초(0:00) → 600초(10:00)
     /// </summary>
     private static Dictionary<EnemyShip, (float min, float max)> timeRanges;
 
@@ -72,7 +72,7 @@ public static class EnemyTimeRangeData
     /// 특정 시간에 해당 적을 스폰할 수 있는지 확인
     /// </summary>
     /// <param name="enemyPrefab">적 프리팹</param>
-    /// <param name="elapsedTime">경과 시간 (초 단위, 0 → 840)</param>
+    /// <param name="elapsedTime">경과 시간 (초 단위, 0 → 600)</param>
     /// <returns>스폰 가능 여부</returns>
     public static bool CanSpawnAtTime(EnemyShip enemyPrefab, float elapsedTime)
     {
@@ -101,7 +101,7 @@ public static class EnemyTimeRangeData
     /// <summary>
     /// 특정 시간에 스폰 가능한 모든 적 목록 반환
     /// </summary>
-    /// <param name="elapsedTime">경과 시간 (초 단위, 0 → 840)</param>
+    /// <param name="elapsedTime">경과 시간 (초 단위, 0 → 600)</param>
     /// <returns>스폰 가능한 적 프리팹 목록</returns>
     public static List<EnemyShip> GetSpawnableEnemiesAtTime(float elapsedTime)
     {

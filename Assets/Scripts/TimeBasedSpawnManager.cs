@@ -5,7 +5,7 @@ using NaughtyAttributes;
 
 /// <summary>
 /// 시간 기반 스폰 시스템의 핵심 관리자
-/// - 14분 elapsed 타이머 사용 (TimeRecordManager)
+/// - 10분 elapsed 타이머 사용 (TimeRecordManager)
 /// - 예산 누적 시스템
 /// - 주기적 스폰 체크 실행
 /// - 시간 범위 기반 스폰 풀 관리
@@ -39,19 +39,19 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 #if UNITY_EDITOR
         List<EnemyTimeRange> ranges = new List<EnemyTimeRange>();
 
-        // 12개 적의 시간 범위 정의 (elapsed time 기준: 0초부터 시작)
-        AddEnemyRange(ranges, "Enemy_light_child", 0, 180);      // 0:00 ~ 3:00
-        AddEnemyRange(ranges, "Enemy_light_kido", 30, 210);      // 0:30 ~ 3:30
-        AddEnemyRange(ranges, "Enemy_light_thunder", 60, 240);   // 1:00 ~ 4:00
-        AddEnemyRange(ranges, "Enemy_mid_Ghost", 120, 420);      // 2:00 ~ 7:00
-        AddEnemyRange(ranges, "Enemy_mid_Hornet", 150, 450);     // 2:30 ~ 7:30
-        AddEnemyRange(ranges, "Enemy_mid_master", 180, 480);     // 3:00 ~ 8:00
-        AddEnemyRange(ranges, "Enemy_mid_Knight", 210, 540);     // 3:30 ~ 9:00
-        AddEnemyRange(ranges, "Enemy_mid_sniper", 240, 570);     // 4:00 ~ 9:30
-        AddEnemyRange(ranges, "Enemy_mid_tank", 270, 600);       // 4:30 ~ 10:00
-        AddEnemyRange(ranges, "Enemy_mid_Spiral", 300, 630);     // 5:00 ~ 10:30
-        AddEnemyRange(ranges, "Enemy_heavy_mother", 360, 780);   // 6:00 ~ 13:00
-        AddEnemyRange(ranges, "Enemy_heavy_Gunship", 420, 840);  // 7:00 ~ 14:00
+        // 12개 적의 시간 범위 정의 (elapsed time 기준: 0초부터 시작, 10분 목표)
+        AddEnemyRange(ranges, "Enemy_light_child", 0, 120);      // 0:00 ~ 2:00
+        AddEnemyRange(ranges, "Enemy_light_kido", 20, 140);      // 0:20 ~ 2:20
+        AddEnemyRange(ranges, "Enemy_light_thunder", 40, 160);   // 0:40 ~ 2:40
+        AddEnemyRange(ranges, "Enemy_mid_Ghost", 80, 300);       // 1:20 ~ 5:00
+        AddEnemyRange(ranges, "Enemy_mid_Hornet", 100, 320);     // 1:40 ~ 5:20
+        AddEnemyRange(ranges, "Enemy_mid_master", 120, 340);     // 2:00 ~ 5:40
+        AddEnemyRange(ranges, "Enemy_mid_Knight", 140, 360);     // 2:20 ~ 6:00
+        AddEnemyRange(ranges, "Enemy_mid_sniper", 160, 380);     // 2:40 ~ 6:20
+        AddEnemyRange(ranges, "Enemy_mid_tank", 180, 400);       // 3:00 ~ 6:40
+        AddEnemyRange(ranges, "Enemy_mid_Spiral", 200, 420);     // 3:20 ~ 7:00
+        AddEnemyRange(ranges, "Enemy_heavy_mother", 240, 540);   // 4:00 ~ 9:00
+        AddEnemyRange(ranges, "Enemy_heavy_Gunship", 300, 600);  // 5:00 ~ 10:00
 
         enemyTimeRanges = ranges.ToArray();
         UnityEditor.EditorUtility.SetDirty(this);
@@ -99,16 +99,16 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     [SerializeField] private float initialBudget = 50f;
     [SerializeField, ReadOnly] private float currentBudget;
 
-    [Header("Budget Accumulation Rate (Linear Ramp)")]    
+    [Header("Budget Accumulation Rate (Linear Ramp)")]
     [SerializeField] private float minBudgetRate = 10f;  // 초기 예산 증가율 (게임 시작)
     [SerializeField] private float maxBudgetRate = 25f;  // 최종 예산 증가율 (최고 난이도)
-    [SerializeField] private float budgetRateMaxUpTime = 840f; // 최종값 도달 시간 (초)
+    [SerializeField] private float budgetRateMaxUpTime = 600f; // 최종값 도달 시간 (초)
     [SerializeField, ReadOnly] private float currentBudgetRate = 10f; // 현재 증가율 (실시간 계산)     
 
     [Header("Target Presence Score (Linear Ramp)")]
     [SerializeField] private float minTargetPresenceScore = 50f;  // 초기 목표 존재 점수 (게임 시작)
     [SerializeField] private float maxTargetPresenceScore = 800f; // 최종 목표 존재 점수 (최고 난이도)
-    [SerializeField] private float targetPresenceScoreRampUpTime = 840f; // 최종값 도달 시간 (초)    
+    [SerializeField] private float targetPresenceScoreRampUpTime = 600f; // 최종값 도달 시간 (초)    
     [SerializeField, ReadOnly] private float currentPresenceScore = 0f; // 현재 존재 점수
     [SerializeField, ReadOnly] private float currentTargetPresenceScore = 50f; // 현재 목표 존재 점수 (실시간 계산)    
     
@@ -306,9 +306,9 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     private int GetCurrentPhase()
     {
         float elapsed = GetElapsedTime();
-        if (elapsed < 240f) return 1; // Phase 1: 0~240초 (0:00~4:00)
-        if (elapsed < 480f) return 2; // Phase 2: 240~480초 (4:00~8:00)
-        return 3; // Phase 3: 480~840초 (8:00~14:00)
+        if (elapsed < 200f) return 1; // Phase 1: 0~200초 (0:00~3:20)
+        if (elapsed < 400f) return 2; // Phase 2: 200~400초 (3:20~6:40)
+        return 3; // Phase 3: 400~600초 (6:40~10:00)
     }
 
     #endregion
