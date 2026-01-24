@@ -2366,6 +2366,9 @@ MonoBehaviour:
     spawnCount: 20
     spawnInterval: 0.1
     pauseNormalSpawn: 1
+    onEventStart:
+      m_PersistentCalls:
+        m_Calls: []
   bossPrefab: {fileID: 6078006324994066098, guid: 83b513a659d9bdb4cb891d2a3a34fdab, type: 3}
   bossSpawnTime: 600
   bossSpawnEdge: 1
@@ -4928,7 +4931,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1160230098051440518, guid: c04094610d02a7d40a907e9c7e5808ff, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3108423768624995501, guid: c04094610d02a7d40a907e9c7e5808ff, type: 3}
       propertyPath: movePower

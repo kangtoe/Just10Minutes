@@ -154,21 +154,18 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         // 보스 이벤트 생성 및 추가
         if (bossPrefab != null)
         {
-            bossEvent = new SpawnEventData();
-            // Reflection을 사용하여 private 필드 설정
-            var triggerTimeField = typeof(SpawnEventData).GetField("triggerTime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var spawnEdgeField = typeof(SpawnEventData).GetField("spawnEdge", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var enemyPrefabField = typeof(SpawnEventData).GetField("enemyPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var spawnCountField = typeof(SpawnEventData).GetField("spawnCount", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var spawnIntervalField = typeof(SpawnEventData).GetField("spawnInterval", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var pauseNormalSpawnField = typeof(SpawnEventData).GetField("pauseNormalSpawn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            // 생성자를 사용하여 보스 이벤트 생성
+            bossEvent = new SpawnEventData(
+                triggerTime: bossSpawnTime,
+                spawnEdge: bossSpawnEdge,
+                enemyPrefab: bossPrefab,
+                spawnCount: bossSpawnCount,
+                spawnInterval: 0.2f,
+                pauseNormalSpawn: true
+            );
 
-            triggerTimeField?.SetValue(bossEvent, bossSpawnTime);
-            spawnEdgeField?.SetValue(bossEvent, bossSpawnEdge);
-            enemyPrefabField?.SetValue(bossEvent, bossPrefab);
-            spawnCountField?.SetValue(bossEvent, bossSpawnCount);
-            spawnIntervalField?.SetValue(bossEvent, 0.2f);
-            pauseNormalSpawnField?.SetValue(bossEvent, true);
+            // 보스 이벤트 시작 시 콜백 등록
+            bossEvent.onEventStart.AddListener(OnBossEventStart);
 
             // 기존 스폰 이벤트 배열에 보스 이벤트 추가
             List<SpawnEventData> eventList = new List<SpawnEventData>();
@@ -653,6 +650,58 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 
     #endregion
 
+    #region Enemy Management
+
+    /// <summary>
+    /// 모든 적을 보상 없이 제거
+    /// </summary>
+    public void ClearAllEnemies()
+    {
+        EnemyShip[] enemies = FindObjectsByType<EnemyShip>(FindObjectsSortMode.None);
+        foreach (var enemy in enemies)
+        {
+            Damageable damageable = enemy.GetComponent<Damageable>();
+            if (damageable != null && !damageable.IsDead)
+            {
+                damageable.Die(giveReward: false);
+            }
+        }
+
+        if (showDebugLogs)
+            Debug.Log($"[SpawnManager] Cleared {enemies.Length} enemies");
+    }
+
+    #endregion
+
+    #region Boss Event Callbacks
+
+    /// <summary>
+    /// 보스 이벤트 시작 시 호출되는 콜백
+    /// </summary>
+    private void OnBossEventStart()
+    {
+        if (showDebugLogs)
+            Debug.Log("[Boss] Boss event started - Clearing existing enemies");
+
+        // 기존 모든 적 제거
+        ClearAllEnemies();
+
+        // 플레이어 위치에 플로팅 텍스트 표시
+        if (UiManager.Instance != null && GameManager.Instance != null && GameManager.Instance.PlayerShip != null)
+        {
+            Vector3 playerPos = GameManager.Instance.PlayerShip.transform.position;
+            UiManager.Instance.CreateText("! BOSS INCOMING !", playerPos);
+        }
+
+        // 화면 떨림 효과
+        // if (UiManager.Instance != null)
+        // {
+        //     UiManager.Instance.ShakeUI(20f, 0.5f);
+        // }
+    }
+
+    #endregion
+
     #region Spawn Events
 
     /// <summary>
@@ -686,6 +735,9 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
     {
         if (showDebugLogs)
             Debug.Log($"[SpawnEvent] Event started at {FormatTime(GetElapsedTime())} - Edge: {eventData.SpawnEdge}, Count: {eventData.SpawnCount}");
+
+        // 이벤트 시작 콜백 호출
+        eventData.onEventStart?.Invoke();
 
         // 일반 스폰 일시 중지 (옵션)
         if (eventData.PauseNormalSpawn)

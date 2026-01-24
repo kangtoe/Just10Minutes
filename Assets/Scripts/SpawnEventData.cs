@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 /// <summary>
 /// 특수 스폰 이벤트 데이터
@@ -29,8 +30,30 @@ public class SpawnEventData
     [Tooltip("이벤트 중 일반 스폰 일시 중지 여부")]
     [SerializeField] private bool pauseNormalSpawn = true;
 
+    [Header("Event Callbacks")]
+    [Tooltip("이벤트 시작 시 호출될 콜백")]
+    public UnityEvent onEventStart;
+
     // 이벤트 실행 상태 (런타임)
     [NonSerialized] public bool hasTriggered = false;
+
+    // 기본 생성자 (Unity 직렬화용)
+    public SpawnEventData()
+    {
+        onEventStart = new UnityEvent();
+    }
+
+    // 런타임 생성자 (코드로 이벤트 생성할 때 사용)
+    public SpawnEventData(float triggerTime, Edge spawnEdge, EnemyShip enemyPrefab, int spawnCount, float spawnInterval = 0.2f, bool pauseNormalSpawn = true)
+    {
+        this.triggerTime = triggerTime;
+        this.spawnEdge = spawnEdge;
+        this.enemyPrefab = enemyPrefab;
+        this.spawnCount = spawnCount;
+        this.spawnInterval = spawnInterval;
+        this.pauseNormalSpawn = pauseNormalSpawn;
+        this.onEventStart = new UnityEvent();
+    }
 
     // 프로퍼티
     public float TriggerTime => triggerTime;

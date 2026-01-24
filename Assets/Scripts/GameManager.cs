@@ -134,8 +134,6 @@ public class GameManager : MonoSingleton<GameManager>
 
     public void GameOver(float delay = 0.1f, float slowDuration = 1.5f)
     {
-
-
         IEnumerator GameOverCr(float delay)
         {
             yield return new WaitForSecondsRealtime(delay);
@@ -156,19 +154,9 @@ public class GameManager : MonoSingleton<GameManager>
         IEnumerator GameClearCr(float delay)
         {
             yield return new WaitForSecondsRealtime(delay);
-
-            // 남은 모든 적을 보상 없이 제거
-            EnemyShip[] enemies = FindObjectsOfType<EnemyShip>();
-            foreach (var enemy in enemies)
-            {
-                Damageable damageable = enemy.GetComponent<Damageable>();
-                if (damageable != null && !damageable.IsDead)
-                {
-                    damageable.Die(giveReward: false);
-                }
-            }
-
+            
             gameState = GameState.GameClear;
+            TimeBasedSpawnManager.Instance.ClearAllEnemies();
             UiManager.Instance.SetCanvas(GameState.GameClear);
             SoundManager.Instance.PlaySound(clearSound);
             TimeRecordManager.Instance.SetActiveCount(false);
