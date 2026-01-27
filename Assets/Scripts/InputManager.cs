@@ -7,19 +7,14 @@ public class InputManager : MonoSingleton<InputManager>
 {
     InputSystem_Actions inputActions;
 
-    void Awake()
+    public override bool Initialize()
     {
+        if (!base.Initialize()) return false;
+
         inputActions = new InputSystem_Actions();
-    }
-
-    void OnEnable()
-    {
         inputActions.Enable();
-    }
 
-    void OnDisable()
-    {
-        inputActions.Disable();
+        return true;
     }
 
     // Player Controls
