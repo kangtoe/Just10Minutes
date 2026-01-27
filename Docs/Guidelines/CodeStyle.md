@@ -29,20 +29,65 @@ Assets/
 게임 전역에서 접근해야 하는 매니저들에 사용:
 
 ```csharp
-public class GameManager : MonoBehaviour
+public class SomeManager : MonoSingleton<SomeManager>
 {
-    public static GameManager Instance { get; private set; }
+    [SerializeField] private TextAsset someCsv;  // Inspector에서 할당
 
-    private void Awake()
+    public override void Initialize()
     {
-        if (Instance != null && Instance != this)
+        // 중복 초기화 방지
+        if (IsInitialized)
         {
-            Destroy(gameObject);
+            Debug.LogWarning("[SomeManager] Already initialized!");
             return;
         }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+
+        // 초기화 로직
+        // CSV 로드, 데이터 구조 초기화 등
+
+        IsInitialized = true;
+        Debug.Log("[SomeManager] Initialized successfully");
     }
+}
+```
+
+**네이밍 규칙:**
+- 싱글톤 클래스는 구분하기 쉽게 **반드시 `Manager` 접미사 사용**
+- 예: `PlayerStatsManager`, `GameManager`, `UpgradeManager`
+
+**자동 초기화 시스템:**
+- `MonoSingleton<T>.Instance` getter에서 **자동으로 `Initialize()` 호출**
+- 첫 번째 인스턴스 접근 시 자동 초기화되므로 Unity 실행 순서와 무관
+- `IsInitialized` 플래그로 중복 초기화 방지
+- Script Execution Order 설정 불필요
+
+**초기화 흐름:**
+```csharp
+// 어디서든 Instance에 접근하면 자동 초기화
+PlayerStatsManager.Instance.GetStat(UpgradeField.MaxDurability);
+// ↓
+// MonoSingleton.Instance getter 실행
+// ↓
+// 인스턴스 생성 (씬에 없으면 동적 생성)
+// ↓
+// Initialize() 자동 호출
+// ↓
+// IsInitialized = true
+```
+
+**명시적 초기화 순서 제어 (필요 시):**
+```csharp
+void Start()
+{
+    // 1. PlayerStatsManager 초기화 (PlayerStats.csv 로드)
+    // Instance 접근만으로 자동 초기화됨
+    var _ = PlayerStatsManager.Instance;
+
+    // 2. UpgradeData 초기화 (Upgrades.csv 로드 + DisplayName 병합)
+    UpgradeData.Initialize(upgradesCsv);
+
+    // 3. UI 업데이트
+    UiManager.Instance.SetUpgradePointText(PlayerStatsManager.Instance.upgradePoint);
 }
 ```
 
@@ -50,7 +95,13 @@ public class GameManager : MonoBehaviour
 - `GameManager`: 게임 상태, 점수, 레벨 관리
 - `PoolManager`: 오브젝트 풀링
 - `UpgradeManager`: 업그레이드 시스템
-- `InputManager`: 입력 처리 (선택사항)
+- `PlayerStatsManager`: 플레이어 스탯 관리 (CSV 기반)
+- `InputManager`: 입력 처리
+- `SoundManager`: 사운드 관리
+- `UiManager`: UI 관리
+- `LevelManager`: 레벨 및 경험치 관리
+- `ScoreManager`: 점수 관리
+- `TimeRecordManager`: 시간 기록 관리
 
 ### 2. Object Pooling 패턴
 
@@ -303,14 +354,14 @@ DoSomething(data);
 ```csharp
 // ❌ BAD - 중첩된 함수 호출로 길어지고 읽기 어려움
 UiManager.Instance.CreateText("No Point!", InputManager.Instance.PointerPosition);
-PlayerStats.Instance.ApplyUpgrade(option.field, UpgradeData.GetIncrementValue(option.type));
+PlayerStatsManager.Instance.ApplyUpgrade(option.field, UpgradeData.GetIncrementValue(option.type));
 
 // ✅ GOOD - 중간 변수 사용으로 명확한 의도 표현
 Vector2 touchPos = InputManager.Instance.PointerPosition;
 UiManager.Instance.CreateText("No Point!", touchPos);
 
 float incrementValue = UpgradeData.GetIncrementValue(option.type);
-PlayerStats.Instance.ApplyUpgrade(option.field, incrementValue);
+PlayerStatsManager.Instance.ApplyUpgrade(option.field, incrementValue);
 ```
 
 **이유:**
@@ -338,15 +389,41 @@ void Awake()
 }
 ```
 
-**올바른 방식:**
+**올바른 방식 (MonoSingleton 사용 시):**
 ```csharp
-// ✅ GOOD - 명시적 Initialize 메소드 + 명확한 호출 순서
-public void Initialize()
+// ✅ GOOD - MonoSingleton 자동 초기화 활용
+public class PlayerStatsManager : MonoSingleton<PlayerStatsManager>
 {
-    // 외부에서 명시적으로 호출되어야 함
-    value = CalculateValue();
+    [SerializeField] private TextAsset playerStatsCsv;
+
+    public override void Initialize()
+    {
+        if (IsInitialized) return;
+
+        // CSV 로드 및 초기화
+        // Instance 첫 접근 시 자동 호출됨
+        LoadData();
+
+        IsInitialized = true;
+    }
 }
 
+// ✅ GOOD - 의존성 있는 초기화는 명시적 순서 제어
+void Start()
+{
+    // 1. PlayerStatsManager 초기화 (Instance 접근 시 자동)
+    var _ = PlayerStatsManager.Instance;
+
+    // 2. UpgradeData 초기화 (PlayerStats에 의존)
+    UpgradeData.Initialize(upgradesCsv);
+
+    // 3. UI 업데이트 (모든 데이터 로드 후)
+    UiManager.Instance.SetUpgradePointText(PlayerStatsManager.Instance.upgradePoint);
+}
+```
+
+**일반 컴포넌트 초기화 예시:**
+```csharp
 // ✅ GOOD - 상위 컴포넌트에서 순서 제어
 void Start()
 {
@@ -359,29 +436,30 @@ void Start()
 }
 ```
 
-**계층적 초기화 예시:**
-```csharp
-// Manager가 최상위에서 초기화 순서 제어
-public class GameManager : MonoBehaviour
-{
-    void Start()
-    {
-        // 1. UI 초기화
-        UiManager.Instance.Initialize();
-
-        // 2. 플레이어 초기화 (UI에 의존)
-        PlayerShip.Instance.Initialize();
-
-        // 3. 게임 시작
-        StartGame();
-    }
-}
+**현재 프로젝트의 초기화 흐름:**
+```
+게임 시작
+  ↓
+UpgradeManager.Start()
+  ↓
+PlayerStatsManager.Instance 접근
+  ↓
+MonoSingleton.Instance getter → Initialize() 자동 호출
+  ↓
+PlayerStats.csv 로드 → StatMetadataRegistry 초기화
+  ↓
+UpgradeData.Initialize(upgradesCsv)
+  ↓
+Upgrades.csv 로드 → DisplayName 병합
+  ↓
+UI 업데이트
 ```
 
 **이유:**
-- Awake/Start 실행 순서는 Unity가 결정하므로 통제 불가능
-- 각 컴포넌트가 독립적으로 Awake에서 초기화하면 의존성 문제 발생
-- 명확한 초기화 순서를 상위 레벨에서 제어해야 디버깅 가능
+- `MonoSingleton<T>.Instance`는 첫 접근 시 자동으로 `Initialize()` 호출
+- 의존성이 있는 초기화만 `Start()`에서 명시적 순서 제어
+- Unity의 Awake/Start 실행 순서에 의존하지 않음
+- Script Execution Order 설정 불필요
 
 ## 참고 자료
 
