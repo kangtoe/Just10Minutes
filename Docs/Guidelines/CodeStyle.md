@@ -103,6 +103,19 @@ void Start()
 - `ScoreManager`: 점수 관리
 - `TimeRecordManager`: 시간 기록 관리
 
+**매니저 초기화 의존성:**
+
+Initialize() 내부에서 다른 매니저에 의존:
+- LevelManager → UiManager (UpdateExpUI)
+- ScoreManager → UiManager (UpdateScoreUI)
+- TimeRecordManager → UiManager (SetTimeRecordText)
+- 나머지는 독립 (PlayerStatsManager, InputManager, SoundManager, UiManager)
+
+중복 초기화 방지:
+- Initialize() override 시 **반드시 `if (!base.Initialize()) return false;`를 첫 줄에 작성**
+- base.Initialize()가 IsInitialized 플래그를 확인하고 설정함
+- 이미 초기화된 경우 false 반환하여 중복 초기화 방지
+
 ### 2. Object Pooling 패턴
 
 **권장 적용 대상:**
