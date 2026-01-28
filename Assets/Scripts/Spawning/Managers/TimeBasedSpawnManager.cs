@@ -13,11 +13,9 @@ using NaughtyAttributes;
 public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
 {
     [Header("=== Enemy Time Ranges ===")]
-    [Tooltip("적 프리팹 리스트 (에디터에서 직접 설정)")]
-    [SerializeField] private EnemyShip[] enemyPrefabs;
-    [Tooltip("CSV 파일 (시간 정보 로드)")]
-    [SerializeField] private TextAsset enemySpawnTimesCsv;
-    [Tooltip("CSV에서 로드된 데이터 (자동 설정됨)")]
+    [Tooltip("적 스폰 시간 설정 ScriptableObject")]
+    [SerializeField] private EnemySpawnTimesSO enemySpawnTimesSO;
+    [Tooltip("로드된 스폰 시간 데이터 (자동 설정됨)")]
     [SerializeField, ReadOnly] private EnemyTimeRange[] enemyTimeRanges;
 
     [Header("=== Spawn Events ===")]
@@ -100,21 +98,15 @@ public class TimeBasedSpawnManager : MonoSingleton<TimeBasedSpawnManager>
         // Edge 선택기 초기화
         edgeSelector.Reset();
 
-        // 적 시간 범위 데이터 초기화
-        if (enemyPrefabs == null || enemyPrefabs.Length == 0)
+        // 적 시간 범위 데이터 초기화 (ScriptableObject에서 로드)
+        if (enemySpawnTimesSO == null)
         {
-            Debug.LogError("[TimeBasedSpawn] Enemy prefabs가 Inspector에 설정되지 않았습니다!");
+            Debug.LogError("[TimeBasedSpawn] EnemySpawnTimesSO가 할당되지 않았습니다! Inspector에서 설정해주세요.");
             return;
         }
 
-        if (enemySpawnTimesCsv == null)
-        {
-            Debug.LogError("[TimeBasedSpawn] EnemySpawnTimes CSV가 할당되지 않았습니다!");
-            return;
-        }
+        enemyTimeRanges = enemySpawnTimesSO.ToTimeRanges();
 
-        // CSV에서 시간 정보를 로드하여 프리팹 리스트와 매칭
-        enemyTimeRanges = EnemySpawnTimesLoader.LoadFromCsv(enemySpawnTimesCsv, enemyPrefabs);
         if (enemyTimeRanges == null || enemyTimeRanges.Length == 0)
         {
             Debug.LogError("[TimeBasedSpawn] CSV 로드 실패 또는 데이터 없음!");
