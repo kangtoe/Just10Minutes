@@ -55,10 +55,13 @@ public class PlayerShip : MonoBehaviour
     // PlayerShip 초기화
     public void Initialize()
     {
-        // 1. PlayerShip의 컴포넌트들을 PlayerStats 참조 모드로 초기화
+        // 1. PlayerShip의 컴포넌트들을 PlayerStats 기반으로 초기화
         damageable.Initialize(true);  // PlayerStats 기반으로 최대 체력/실드 설정
-        shooter.TogglePlayerStatsReference(true);
         impactable.TogglePlayerStatsReference(true);
+
+        // Shooter의 발사체 데이터를 PlayerStats 값으로 초기화
+        shooter.SetDamage(PlayerStatsManager.Instance.projectileDamage);
+        shooter.SetSpeed(PlayerStatsManager.Instance.projectileSpeed);
 
         // 2. UI 게이지 초기화
         UiManager.Instance.InitializeDurabilityUI();
@@ -138,6 +141,12 @@ public class PlayerShip : MonoBehaviour
             case UpgradeField.MultiShot:
                 shooter.SetMultiShot(PlayerStatsManager.Instance.multiShot);
                 break;
+            case UpgradeField.ProjectileDamage:
+                shooter.SetDamage(PlayerStatsManager.Instance.projectileDamage);
+                break;
+            case UpgradeField.ProjectileSpeed:
+                shooter.SetSpeed(PlayerStatsManager.Instance.projectileSpeed);
+                break;
             case UpgradeField.MoveSpeed:
                 moveStandard.SetMovePower(PlayerStatsManager.Instance.moveSpeed);
                 break;
@@ -175,6 +184,12 @@ public class PlayerShip : MonoBehaviour
             // 사격
             case UpgradeField.MultiShot:
                 shooter.SetMultiShot((int)amount);
+                break;
+            case UpgradeField.ProjectileDamage:
+                shooter.SetDamage((int)amount);
+                break;
+            case UpgradeField.ProjectileSpeed:
+                shooter.SetSpeed(amount);
                 break;
 
             // 이동

@@ -2,6 +2,132 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// 발사체 데이터 구조체 (외부 데이터 확장 가능)
+[System.Serializable]
+public struct BulletData
+{
+    [Header("=== Basic Stats ===")]
+    [Tooltip("발사체 데미지")]
+    public int damage;
+    [Tooltip("충돌 시 넉백 힘")]
+    public int impact;
+    [Tooltip("발사체 속도")]
+    public float speed;
+
+    [Header("=== Behavior ===")]
+    [Tooltip("충돌 시 발사체 파괴")]
+    public bool destroyOnHit;
+    [Tooltip("다른 발사체와 충돌 시 제거")]
+    public bool removeOtherBullet;
+
+    [Header("=== Effects & Sounds ===")]
+    [Tooltip("충돌 이펙트 프리팹")]
+    public GameObject hitEffect;
+    [Tooltip("이펙트 범위 데미지 반경 (0 = 단일 타겟)")]
+    public float hitEffectRadius;
+    [Tooltip("충돌 사운드")]
+    public AudioClip onHitSound;
+
+    [Header("=== Transformation System ===")]
+    [Tooltip("변형 시작 시간 (초, -1 = 비활성화)")]
+    public float transformStartTime;
+    [Tooltip("변형 진행 시간 (초, -1 = 비활성화)")]
+    public float transformDuration;
+
+    [Space(5)]
+    [Tooltip("시작 크기 배율")]
+    [Range(0f, 10f)]
+    public float scaleMultiplierStart;
+    [Tooltip("끝 크기 배율")]
+    [Range(0f, 10f)]
+    public float scaleMultiplierEnd;
+
+    [Space(5)]
+    [Tooltip("시작 투명도")]
+    [Range(0f, 1f)]
+    public float alphaStart;
+    [Tooltip("끝 투명도")]
+    [Range(0f, 1f)]
+    public float alphaEnd;
+    [Tooltip("페이드 시작 비율 (0~1)")]
+    [Range(0f, 1f)]
+    public float alphaFadeStartRatio;
+
+    [Space(5)]
+    [Tooltip("끝 데미지 배율 (1.0 = 변화없음)")]
+    [Range(0f, 2f)]
+    public float damageMultiplierEnd;
+    [Tooltip("시작 속도 배율")]
+    [Range(0f, 2f)]
+    public float speedMultiplierStart;
+    [Tooltip("끝 속도 배율")]
+    [Range(0f, 2f)]
+    public float speedMultiplierEnd;
+
+    [Space(5)]
+    [Tooltip("충돌 판정 비활성화 진행도 (1.0 = 비활성화 안함)")]
+    [Range(0f, 1f)]
+    public float colliderDisableThreshold;
+    [Tooltip("변형 완료 시 파괴")]
+    public bool destroyOnComplete;
+    [Tooltip("시작 회전 속도 (도/초)")]
+    public float rotationSpeedStart;
+    [Tooltip("끝 회전 속도 (도/초)")]
+    public float rotationSpeedEnd;
+
+    [Header("=== Homing System ===")]
+    [Tooltip("추적 회전 속도 (0 = 추적 안함)")]
+    public float homingTurnSpeed;
+    [Tooltip("추적 시작 시간 (초)")]
+    public float homingStartTime;
+    [Tooltip("최대 추적 시간 (-1 = 무제한)")]
+    public float homingMaxDuration;
+
+    /// <summary>
+    /// 기본값으로 초기화된 BulletData 생성
+    /// </summary>
+    public static BulletData CreateDefault()
+    {
+        return new BulletData
+        {
+            // Basic Stats
+            damage = 10,
+            impact = 5,
+            speed = 10f,
+
+            // Behavior
+            destroyOnHit = true,
+            removeOtherBullet = false,
+
+            // Effects & Sounds
+            hitEffect = null,
+            hitEffectRadius = 0f,
+            onHitSound = null,
+
+            // Transformation System (비활성화)
+            transformStartTime = 0f,
+            transformDuration = -1f,
+            scaleMultiplierStart = 1f,
+            scaleMultiplierEnd = 1f,
+            alphaStart = 1f,
+            alphaEnd = 1f,
+            alphaFadeStartRatio = 0f,
+            damageMultiplierEnd = 1f,
+            speedMultiplierStart = 1f,
+            speedMultiplierEnd = 1f,
+            colliderDisableThreshold = 1f,
+            destroyOnComplete = true,
+            rotationSpeedStart = 0f,
+            rotationSpeedEnd = 0f,
+
+            // Homing System (비활성화)
+            homingTurnSpeed = 0f,
+            homingStartTime = 0f,
+            homingMaxDuration = -1f
+        };
+    }
+}
+
 // 탄환이 사라지는 조건 3가지
 // 1. 생성 후 일정 시간이 경과.
 // 2. 화면 밖으로 나감
@@ -11,65 +137,23 @@ public class BulletBase : MonoBehaviour
     // 기술적 상수
     private const float LIVE_TIME = 10f;  // 최대 생존 시간 (안전장치)
 
-    [Header("Sounds")]
-    public AudioClip onHitSound;
+    [Header("Bullet Configuration")]
+    [SerializeField] BulletData bulletData;
 
-    [Space]
-    [SerializeField] bool destoryOnHit = true;
-    [SerializeField] bool removeOtherBullet = false;
+    // 런타임 설정 (Shooter에서 전달)
     int ownerLayer;
-
-    [Space]
-    public GameObject hitEffect;
-    [SerializeField] float hitEffectRadius = 0f;  // 히트 이펙트 범위 데미지 반경 (0 = 범위 데미지 없음)
     public LayerMask targetLayer; // 해당 오브젝트와 충돌을 검사할 레이어
-    public int damage;
-    public int impact;
-    public float movePower;
 
     float spwanedTime = 0;
 
-    [Header("Transformation System (Decay/Expansion)")]
-    [SerializeField] float transformStartTime = 0f;           // 변형 시작 시간 (0 = 즉시, -1 = 비활성화)
-    [SerializeField] float transformDuration = -1f;           // 변형 진행 시간 (-1 = 비활성화)
+    // 변형 시스템용 초기값
+    int initialDamage;
+    Vector3 initialScale;
+    Color initialColor;
 
-    [Space]
-    [SerializeField] float scaleMultiplierStart = 1f;         // 시작 크기 배율 (Pulse: 0, Decay: 1)
-    [SerializeField] float scaleMultiplierEnd = 1f;           // 끝 크기 배율 (Pulse: 8, Decay: 0.5, 변화없음: 1)
-
-    [Space]
-    [SerializeField] float alphaStart = 1f;                   // 시작 알파값
-    [SerializeField] float alphaEnd = 1f;                     // 끝 알파값 (같으면 변화 없음)
-    [SerializeField] float alphaFadeStartRatio = 0f;          // 페이드 시작 비율 (0~1, 0=처음부터, 0.5=50%부터)
-
-    [Space]
-    [SerializeField] float damageMultiplierEnd = 1f;          // 끝 데미지 배율 (1.0=변화없음, 0.5=50%로 감소)
-
-    [Space]
-    [SerializeField] float speedMultiplierStart = 1f;         // 시작 속도 배율
-    [SerializeField] float speedMultiplierEnd = 1f;           // 끝 속도 배율 (1.0=변화없음, 0.1=10%로 감소)
-
-    [Space]
-    [SerializeField] float colliderDisableThreshold = 1f;     // 충돌 판정 비활성화 임계값 (1.0=비활성화 안 함, 0.8=80%에서 비활성화)
-
-    [Space]
-    [SerializeField] bool destroyOnComplete = true;           // 완료 시 파괴 여부
-
-    [Space]
-    [SerializeField] float rotationSpeedStart = 0f;           // 시작 회전 속도 (도/초)
-    [SerializeField] float rotationSpeedEnd = 0f;             // 끝 회전 속도 (도/초)
-
-    [Header("Homing System (Tracking Target)")]
-    [SerializeField] float homingTurnSpeed = 0f;              // 회전 속도 (0 = 추적 안함, 높을수록 빠르게 방향 전환)
-    [SerializeField] float homingStartTime = 0f;              // 추적 시작 시간 (발사 후 몇 초 뒤부터 추적)
-    [SerializeField] float homingMaxDuration = -1f;           // 최대 추적 시간 (-1 = 무제한)
-
-    int initialDamage;      // 초기 데미지 (변형 계산용)
-    Vector3 initialScale;   // 초기 스케일 (변형 계산용)
-    Color initialColor;     // 초기 색상 (투명도 변형 계산용)
-
-    FindTarget findTarget;  // 타겟 탐색 컴포넌트
-    float homingElapsedTime = 0f;  // 추적 경과 시간
+    // 추적 시스템용 런타임 데이터
+    FindTarget findTarget;
+    float homingElapsedTime = 0f;
 
     Rigidbody2D rBody;
     protected Rigidbody2D RBody
@@ -105,7 +189,7 @@ public class BulletBase : MonoBehaviour
         spwanedTime += Time.deltaTime;
 
         // 변형 시스템 처리 (transformDuration이 0 이상일 때만)
-        if (transformDuration >= 0f)
+        if (bulletData.transformDuration >= 0f)
         {
             UpdateTransformation();
         }
@@ -119,7 +203,7 @@ public class BulletBase : MonoBehaviour
     private void FixedUpdate()
     {
         // 추적 시스템 처리 (homingTurnSpeed > 0일 때만)
-        if (homingTurnSpeed > 0f && RBody)
+        if (bulletData.homingTurnSpeed > 0f && RBody)
         {
             UpdateHoming();
         }
@@ -128,16 +212,16 @@ public class BulletBase : MonoBehaviour
     void UpdateHoming()
     {
         // 추적 시작 시간 이전이면 무시
-        if (spwanedTime < homingStartTime)
+        if (spwanedTime < bulletData.homingStartTime)
             return;
 
         // 추적 경과 시간 업데이트
         homingElapsedTime += Time.fixedDeltaTime;
 
         // 최대 추적 시간 초과 시 직진
-        if (homingMaxDuration > 0f && homingElapsedTime > homingMaxDuration)
+        if (bulletData.homingMaxDuration > 0f && homingElapsedTime > bulletData.homingMaxDuration)
         {
-            RBody.linearVelocity = transform.up * movePower;
+            RBody.linearVelocity = transform.up * bulletData.speed;
             return;
         }
 
@@ -155,7 +239,7 @@ public class BulletBase : MonoBehaviour
         Transform target = findTarget ? findTarget.Target : null;
         if (!target)
         {
-            RBody.linearVelocity = transform.up * movePower;
+            RBody.linearVelocity = transform.up * bulletData.speed;
             return;
         }
 
@@ -169,8 +253,8 @@ public class BulletBase : MonoBehaviour
         Vector2 currentDirection = currentSpeed > 0.01f ? currentVelocity / currentSpeed : transform.up;
 
         // 부드러운 방향 전환 (Lerp)
-        Vector2 newDirection = Vector2.Lerp(currentDirection, targetDirection, homingTurnSpeed * Time.fixedDeltaTime);
-        RBody.linearVelocity = newDirection * movePower;
+        Vector2 newDirection = Vector2.Lerp(currentDirection, targetDirection, bulletData.homingTurnSpeed * Time.fixedDeltaTime);
+        RBody.linearVelocity = newDirection * bulletData.speed;
 
         // 스프라이트 회전 (속도 방향으로)
         float angle = Mathf.Atan2(newDirection.y, newDirection.x) * Mathf.Rad2Deg;
@@ -180,46 +264,46 @@ public class BulletBase : MonoBehaviour
     void UpdateTransformation()
     {
         // 변형 시작 시간 이전이면 무시
-        if (spwanedTime < transformStartTime)
+        if (spwanedTime < bulletData.transformStartTime)
             return;
 
         // 변형 진행도 계산 (0 ~ 1)
-        float elapsed = spwanedTime - transformStartTime;
-        float progress = Mathf.Clamp01(elapsed / transformDuration);
+        float elapsed = spwanedTime - bulletData.transformStartTime;
+        float progress = Mathf.Clamp01(elapsed / bulletData.transformDuration);
 
         // 크기 변화 (scaleMultiplierStart → scaleMultiplierEnd)
-        float currentScaleMultiplier = Mathf.Lerp(scaleMultiplierStart, scaleMultiplierEnd, progress);
+        float currentScaleMultiplier = Mathf.Lerp(bulletData.scaleMultiplierStart, bulletData.scaleMultiplierEnd, progress);
         transform.localScale = initialScale * currentScaleMultiplier;
 
         // 데미지 변화 (1.0 → damageMultiplierEnd)
-        if (damageMultiplierEnd != 1f)
+        if (bulletData.damageMultiplierEnd != 1f)
         {
-            float currentDamageMultiplier = Mathf.Lerp(1f, damageMultiplierEnd, progress);
-            damage = Mathf.RoundToInt(initialDamage * currentDamageMultiplier);
+            float currentDamageMultiplier = Mathf.Lerp(1f, bulletData.damageMultiplierEnd, progress);
+            bulletData.damage = Mathf.RoundToInt(initialDamage * currentDamageMultiplier);
         }
 
         // 속도 변화 (speedMultiplierStart → speedMultiplierEnd)
-        if (speedMultiplierEnd != speedMultiplierStart && RBody)
+        if (bulletData.speedMultiplierEnd != bulletData.speedMultiplierStart && RBody)
         {
-            float currentSpeedMultiplier = Mathf.Lerp(speedMultiplierStart, speedMultiplierEnd, progress);
+            float currentSpeedMultiplier = Mathf.Lerp(bulletData.speedMultiplierStart, bulletData.speedMultiplierEnd, progress);
             Vector2 currentDirection = RBody.linearVelocity.normalized;
-            RBody.linearVelocity = currentDirection * (movePower * currentSpeedMultiplier);
+            RBody.linearVelocity = currentDirection * (bulletData.speed * currentSpeedMultiplier);
         }
 
         // 회전 (rotationSpeedStart → rotationSpeedEnd)
-        if (rotationSpeedEnd != rotationSpeedStart)
+        if (bulletData.rotationSpeedEnd != bulletData.rotationSpeedStart)
         {
-            float currentRotationSpeed = Mathf.Lerp(rotationSpeedStart, rotationSpeedEnd, progress);
+            float currentRotationSpeed = Mathf.Lerp(bulletData.rotationSpeedStart, bulletData.rotationSpeedEnd, progress);
             transform.Rotate(0, 0, currentRotationSpeed * Time.deltaTime);
         }
 
         // 투명도 변화 (alphaStart → alphaEnd)
-        if (alphaStart != alphaEnd && Sprite)
+        if (bulletData.alphaStart != bulletData.alphaEnd && Sprite)
         {
             Color color = initialColor;
             float alphaProgress;
 
-            if (progress < alphaFadeStartRatio)
+            if (progress < bulletData.alphaFadeStartRatio)
             {
                 // 페이드 시작 전: 시작 알파값 유지
                 alphaProgress = 0f;
@@ -227,21 +311,21 @@ public class BulletBase : MonoBehaviour
             else
             {
                 // 페이드 시작 후: 남은 구간에서 0~1로 매핑
-                alphaProgress = (progress - alphaFadeStartRatio) / (1f - alphaFadeStartRatio);
+                alphaProgress = (progress - bulletData.alphaFadeStartRatio) / (1f - bulletData.alphaFadeStartRatio);
             }
 
-            color.a = Mathf.Lerp(alphaStart, alphaEnd, alphaProgress);
+            color.a = Mathf.Lerp(bulletData.alphaStart, bulletData.alphaEnd, alphaProgress);
             Sprite.color = color;
         }
 
         // 진행도에 따라 충돌 판정 비활성화
-        if (colliderDisableThreshold < 1f && progress >= colliderDisableThreshold && Coll)
+        if (bulletData.colliderDisableThreshold < 1f && progress >= bulletData.colliderDisableThreshold && Coll)
         {
             Coll.enabled = false;
         }
 
         // 완전히 변형 완료 시 파괴
-        if (progress >= 1f && destroyOnComplete)
+        if (progress >= 1f && bulletData.destroyOnComplete)
         {
             OnHitDestory(null, playSound: false, playEffect: false);
         }
@@ -249,7 +333,7 @@ public class BulletBase : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if(removeOtherBullet) RemoveOtherBullet(other);
+        if(bulletData.removeOtherBullet) RemoveOtherBullet(other);
 
         // targetLayer 검사
         if (1 << other.gameObject.layer == targetLayer.value)
@@ -298,9 +382,9 @@ public class BulletBase : MonoBehaviour
 
     protected void OnHitDestory(Collider2D hitColl = null, bool playSound = true, bool playEffect = true)
     {
-        if (destoryOnHit) Destroy(gameObject);
+        if (bulletData.destroyOnHit) Destroy(gameObject);
 
-        if(playSound) SoundManager.Instance.PlaySound(onHitSound);
+        if(playSound) SoundManager.Instance.PlaySound(bulletData.onHitSound);
 
         if (trail)
         {
@@ -309,20 +393,20 @@ public class BulletBase : MonoBehaviour
             trail.autodestruct = true;
         }
 
-        if (playEffect && hitEffect)
+        if (playEffect && bulletData.hitEffect)
         {
             //Debug.Log("Instantiate hitEffect");
             Vector2 point = hitColl ? hitColl.ClosestPoint(transform.position) : transform.position;
 
             // 히트 이펙트 범위 데미지 처리
-            if (hitEffectRadius > 0f)
+            if (bulletData.hitEffectRadius > 0f)
             {
-                ApplyAreaDamage(point, hitEffectRadius, damage, impact);
-                Instantiate(hitEffect, point, transform.rotation);  // 시각 효과만 생성
+                ApplyAreaDamage(point, bulletData.hitEffectRadius, bulletData.damage, bulletData.impact);
+                Instantiate(bulletData.hitEffect, point, transform.rotation);  // 시각 효과만 생성
                 return;  // 범위 데미지를 입혔으므로 개별 데미지는 생략
             }
 
-            Instantiate(hitEffect, point, transform.rotation);
+            Instantiate(bulletData.hitEffect, point, transform.rotation);
         }
 
         if (hitColl)
@@ -332,46 +416,43 @@ public class BulletBase : MonoBehaviour
             if (!damageable) damageable = hitColl.attachedRigidbody.GetComponent<Damageable>();
             if (damageable)
             {
-                damageable.GetDamaged(damage, gameObject);
+                damageable.GetDamaged(bulletData.damage, gameObject);
             }
 
-            // 힘 가하기       
+            // 힘 가하기
             Rigidbody2D rbody = hitColl.attachedRigidbody;
             if (rbody)
             {
                 Vector2 dir = (hitColl.transform.position - transform.position).normalized;
-                //Vector2 dir = transform.up;            
-                rbody.AddForce(dir * impact, ForceMode2D.Impulse);
+                //Vector2 dir = transform.up;
+                rbody.AddForce(dir * bulletData.impact, ForceMode2D.Impulse);
                 //Debug.Log(name + " to " + rbody.name + " || " + dir * impact);
 
 
             }
-        }        
+        }
     }
 
     // shooter에서 생성 시 호출
-    virtual public void Init(int ownerLayer, int targetLayer, int damage, int impact, float movePower, AudioClip onHitSound = null)
+    virtual public void Init(int ownerLayer, LayerMask targetLayer, BulletData data)
     {
         //Debug.Log("init");
         this.ownerLayer = ownerLayer;
         this.targetLayer = targetLayer;
-        this.damage = damage;
-        this.impact = impact;
-        this.movePower = movePower;
-        this.onHitSound = onHitSound;
+        this.bulletData = data;
 
         // 변형 시스템용 초기값 저장
-        initialDamage = damage;
+        initialDamage = bulletData.damage;
         initialScale = transform.localScale;
         if (Sprite) initialColor = Sprite.color;
 
         // 변형 시스템이 활성화된 경우 즉시 시작 스케일 적용 (첫 프레임 깜빡임 방지)
-        if (transformDuration >= 0f)
+        if (bulletData.transformDuration >= 0f)
         {
-            transform.localScale = initialScale * scaleMultiplierStart;
+            transform.localScale = initialScale * bulletData.scaleMultiplierStart;
         }
 
-        if(RBody) RBody.linearVelocity = transform.up * movePower;
+        if(RBody) RBody.linearVelocity = transform.up * bulletData.speed;
         //Debug.Log("velocity : " + rbody.velocity);
 
         //ColorCtrl colorCtrl = GetComponent<ColorCtrl>();

@@ -2,15 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
+using NaughtyAttributes;
 
 public class ShooterBase : MonoBehaviour
 {
     public Transform[] firePoints;
     public LayerMask targetLayer;
     public bool manualFire = false;
-
-    // PlayerStats 싱글톤에서 스탯 참조 여부 (플레이어용: true, 적용: false)
-    bool usePlayerStats = false;
 
     [Header("Fire time")]
     public float firePointDelay; // 탄환 발사 위치 별 간격
@@ -26,21 +24,23 @@ public class ShooterBase : MonoBehaviour
     public float outsideSlower = 0f; // 바깥쪽 탄환일수록 속도를 느리게 하는 정도
 
     [Header("Projectile Info")]
-    //public GameObject hitEffect;// 발사체 프리펩에서 지정할것 : 동기화 직렬화 불가
     public GameObject projectilePrefab; // 발사할 탄환
-    public int damage = 0;
-    public int impactPower = 0;
-    public int projectileMovePower = 10;
+    public BulletData bulletData; // 발사체 설정 데이터
     public bool createBulletAsChild = false;
+
+    [Button("Reset Bullet Data to Default")]
+    private void ResetBulletDataToDefault()
+    {
+        bulletData = BulletData.CreateDefault();
+    }
 
     [Header("Sounds")]
     public AudioClip shootSound;
-    public AudioClip onHitSound;
 
-    // 런타임 스탯 프로퍼티 (PlayerStatsManager 또는 로컬 필드에서 가져옴)
-    int ShotCount => usePlayerStats ? PlayerStatsManager.Instance.multiShot : shotCountPerFirepoint;
-    int Damage => usePlayerStats ? PlayerStatsManager.Instance.projectileDamage : damage;
-    float ProjectileSpeed => usePlayerStats ? PlayerStatsManager.Instance.projectileSpeed : projectileMovePower;
+    // 런타임 스탯 프로퍼티
+    int ShotCount => shotCountPerFirepoint;
+    int Damage => bulletData.damage;
+    float ProjectileSpeed => bulletData.speed;
 
     public bool Available => Time.time >= lastFireTime + fireDelay;
 
@@ -63,7 +63,12 @@ public class ShooterBase : MonoBehaviour
 
     public void SetDamage(int damage)
     {
-        this.damage = damage;
+        bulletData.damage = damage;
+    }
+
+    public void SetSpeed(float speed)
+    {
+        bulletData.speed = speed;
     }
 
     // 사격 시도
@@ -162,16 +167,15 @@ public class ShooterBase : MonoBehaviour
             float slowRatio = outsideSlower;
             float speed = (nomalRatio * baseSpeed) + (slowRatio * baseSpeed * (1 - Mathf.Abs(f)));
 
+            // 발사체 데이터 준비 (런타임 스탯 적용)
+            BulletData runtimeData = bulletData;
+            runtimeData.damage = Damage;
+            runtimeData.speed = speed;
+
             // 발사체 초기화
-            go.GetComponent<BulletBase>().Init(gameObject.layer, targetLayer, Damage, impactPower, speed, onHitSound);
+            go.GetComponent<BulletBase>().Init(gameObject.layer, targetLayer, runtimeData);
         }
 
         SoundManager.Instance.PlaySound(shootSound);
-    }
-
-    // PlayerStats 참조 사용 여부 설정
-    public void TogglePlayerStatsReference(bool useStats)
-    {
-        usePlayerStats = useStats;
     }
 }
