@@ -2308,6 +2308,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba2f6d28bda831045b28b9dab39f7d17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeBasedSpawnManager
+  enemyPrefabs:
+  - {fileID: 6078006324994066098, guid: 016bbbdfede01bc41a5d4d613aa4c8ae, type: 3}
+  - {fileID: 6078006324994066098, guid: dc55ddee9f640f947be0b11beec51e17, type: 3}
+  - {fileID: 2159223484281061927, guid: 0c480471cb4caeb47908089266ee7b9b, type: 3}
+  - {fileID: 2159223484281061927, guid: ab27139085cdd7e45856d576f49b00af, type: 3}
+  - {fileID: 6078006324994066098, guid: 0eb312aac38994c459be0e2df8a36f70, type: 3}
+  - {fileID: 2159223484281061927, guid: 8f726611f885d3b4aabdb1814acd76dd, type: 3}
+  - {fileID: 6078006324994066098, guid: a95329395d2659c43816e8bd1cd0667a, type: 3}
+  - {fileID: 6078006324994066098, guid: c96afb732f9c1894c943bc5ec8756bb5, type: 3}
+  - {fileID: 2159223484281061927, guid: 447fb77f76e58be448409972773c1639, type: 3}
+  - {fileID: 2159223484281061927, guid: a72143d11175ca947809a1497d408436, type: 3}
+  - {fileID: 4232547872248400293, guid: 65b30501e67ebe94d9b05314921d0652, type: 3}
+  - {fileID: 2159223484281061927, guid: c8e508e7f002d9a4c82c6de3d98f05ae, type: 3}
+  - {fileID: 9150893838177995030, guid: 44f56d21a6327184aabfbf82baa55260, type: 3}
+  - {fileID: 2159223484281061927, guid: d4ffbc02d81eb304fb89c31bb6493e63, type: 3}
   enemySpawnTimesCsv: {fileID: 4900000, guid: 5bf60748616a7ce40a5cac2c0a5f0915, type: 3}
   enemyTimeRanges: []
   spawnEvents:
@@ -3504,13 +3519,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6df1ed9c29f01b4cacb25c703cfffd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <IsInitialized>k__BackingField: 1
   startSound: {fileID: 0}
   overSound: {fileID: 8300000, guid: b9ef78d4e6aa669428c4d1d922882c51, type: 3}
   clearSound: {fileID: 0}
   gameState: 0
   playerShip: {fileID: 529213650}
-  beforeState: 0
 --- !u!4 &1465561465
 Transform:
   m_ObjectHideFlags: 0
@@ -4236,14 +4249,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d67cf84fdb6f4e949a2d7c23c6b64cf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <IsInitialized>k__BackingField: 0
   levelUpSound: {fileID: 8300000, guid: e6b430653926b204f96bfefe75ff43af, type: 3}
-  level: 1
-  exp: 0
   onLevelUp:
     m_PersistentCalls:
       m_Calls: []
-    m_CallsDirty: 1
 --- !u!4 &1639333247
 Transform:
   m_ObjectHideFlags: 0
@@ -4891,6 +4900,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1160230098051440518, guid: c04094610d02a7d40a907e9c7e5808ff, type: 3}
+      propertyPath: projectilePrefab
+      value: 
+      objectReference: {fileID: 1283337894081986906, guid: 3324c653044478b4c9af61bfb7c8731a, type: 3}
     - target: {fileID: 3108423768624995501, guid: c04094610d02a7d40a907e9c7e5808ff, type: 3}
       propertyPath: movePower
       value: 10

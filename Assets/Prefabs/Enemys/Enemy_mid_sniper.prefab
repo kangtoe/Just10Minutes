@@ -76,7 +76,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 4161263289460851843}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 128d274ae4e49634daddf5a100284d9e, type: 3}
+  m_Script: {fileID: 11500000, guid: e187d783185a6b5418b07a14a5b60be2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   point: 500
@@ -96,6 +96,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   diePrefab: {fileID: 8453916313859941413, guid: 2c4ffa33708eb654aa828b00090c03f1, type: 3}
   onDead:
+    m_PersistentCalls:
+      m_Calls: []
+  onKilled:
     m_PersistentCalls:
       m_Calls: []
   onDamaged:
@@ -215,11 +218,10 @@ MonoBehaviour:
   intervalX: 0.2
   intervalY: 0.2
   outsideSlower: 0
-  projectilePrefab: {fileID: 8848894530628425708, guid: a3d84131d4e946a40a0e3a24d9c45593, type: 3}
+  projectilePrefab: {fileID: 3425549393640425885, guid: 7aafadacb57669a4ca2fb3e2c1d6964a, type: 3}
   damage: 25
   impactPower: 5
   projectileMovePower: 10
-  projectileLiveTime: 3
   createBulletAsChild: 0
   shootSound: {fileID: 0}
   onHitSound: {fileID: 0}
