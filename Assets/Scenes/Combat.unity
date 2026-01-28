@@ -1785,7 +1785,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 637880934}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 256671ddf6c83084a8a3c6c20432cafb, type: 3}
+  m_Script: {fileID: 11500000, guid: 1973f4e601202794f828bb3b9173e544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnWarningManager
   warningMarkerPrefab: {fileID: 9150437164627306590, guid: 8457959eb767c304f9d8999063e8913b, type: 3}
@@ -2148,7 +2148,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 829675186}
-  - component: {fileID: 829675185}
+  - component: {fileID: 829675187}
   m_Layer: 0
   m_Name: TimeRecordManager
   m_TagString: Untagged
@@ -2156,19 +2156,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &829675185
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 829675184}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7a97fb72c027554ea95f2ec47697343, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TimeRecordManager
-  startTime: 599
 --- !u!4 &829675186
 Transform:
   m_ObjectHideFlags: 0
@@ -2184,6 +2171,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &829675187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 829675184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f44c2c75809cac14ab1bf12d7d32c600, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TimeRecordManager
+  startTime: 0
 --- !u!1 &834872740
 GameObject:
   m_ObjectHideFlags: 0
@@ -2305,7 +2305,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 882534905}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bedeed1cb655dd24fb79b0094d86a20c, type: 3}
+  m_Script: {fileID: 11500000, guid: ba2f6d28bda831045b28b9dab39f7d17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeBasedSpawnManager
   enemySpawnTimesCsv: {fileID: 4900000, guid: 5bf60748616a7ce40a5cac2c0a5f0915, type: 3}
@@ -3501,14 +3501,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1465561463}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 69f9c68777c205642b17dd69b5b30d6c, type: 3}
+  m_Script: {fileID: 11500000, guid: b6df1ed9c29f01b4cacb25c703cfffd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <IsInitialized>k__BackingField: 1
   startSound: {fileID: 0}
   overSound: {fileID: 8300000, guid: b9ef78d4e6aa669428c4d1d922882c51, type: 3}
   clearSound: {fileID: 0}
   gameState: 0
   playerShip: {fileID: 529213650}
+  beforeState: 0
 --- !u!4 &1465561465
 Transform:
   m_ObjectHideFlags: 0
@@ -4231,13 +4233,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 1639333245}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd8ef074176d92748a715eebb7431046, type: 3}
+  m_Script: {fileID: 11500000, guid: d67cf84fdb6f4e949a2d7c23c6b64cf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <IsInitialized>k__BackingField: 0
   levelUpSound: {fileID: 8300000, guid: e6b430653926b204f96bfefe75ff43af, type: 3}
+  level: 1
+  exp: 0
   onLevelUp:
     m_PersistentCalls:
       m_Calls: []
+    m_CallsDirty: 1
 --- !u!4 &1639333247
 Transform:
   m_ObjectHideFlags: 0
@@ -4883,7 +4889,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1160230098051440518, guid: c04094610d02a7d40a907e9c7e5808ff, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3108423768624995501, guid: c04094610d02a7d40a907e9c7e5808ff, type: 3}
       propertyPath: movePower
