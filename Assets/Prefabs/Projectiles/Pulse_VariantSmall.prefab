@@ -76,6 +76,14 @@ PrefabInstance:
       propertyPath: removeOtherBullet
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3329172590376469610, guid: 3324c653044478b4c9af61bfb7c8731a, type: 3}
+      propertyPath: scaleMultiplierEnd
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3329172590376469610, guid: 3324c653044478b4c9af61bfb7c8731a, type: 3}
+      propertyPath: scaleMultiplierStart
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

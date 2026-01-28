@@ -42,9 +42,9 @@ public class Pulse : BulletBase
         Sprite.color = color;
     }
 
-    public override void Init(int ownerLayer, int targetLayer, int damage, int impact, float movePower, float liveTime, AudioClip onHitSound = null)
+    public override void Init(int ownerLayer, int targetLayer, int damage, int impact, float movePower, AudioClip onHitSound = null)
     {
-        base.Init(ownerLayer, targetLayer, damage, impact, 0, 99, onHitSound);
+        base.Init(ownerLayer, targetLayer, damage, impact, 0, onHitSound);
         Sprite.transform.localScale = Vector2.zero;
     }
 
