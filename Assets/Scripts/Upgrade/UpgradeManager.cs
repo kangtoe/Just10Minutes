@@ -74,6 +74,10 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
 
     List<UpgradeButtonUI> UpgradeButtons => UiManager.Instance.UpgradeButtonUIList;
 
+    [Header("=== Upgrade State ===")]
+    [Tooltip("현재 보유 중인 업그레이드 포인트")]
+    public int upgradePoint = 0;
+
     // 업그레이드별 현재 레벨 추적 (업그레이드 ID → 레벨)
     Dictionary<string, int> upgradeLevels = new Dictionary<string, int>();
 
@@ -109,7 +113,7 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
         var _ = PlayerStatsManager.Instance;
 
         // 4. UI 업데이트
-        UiManager.Instance.SetUpgradePointText(PlayerStatsManager.Instance.upgradePoint);
+        UiManager.Instance.SetUpgradePointText(upgradePoint);
 
         // 버튼 리스너 등록
         for (int i = 0; i < UpgradeButtons.Count; i++)
@@ -126,7 +130,7 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
     void SelectUpgrade(int index)
     {
         // 포인트 체크
-        if (PlayerStatsManager.Instance.upgradePoint < 1)
+        if (upgradePoint < 1)
         {
             ShowError("No Point!");
             return;
@@ -152,14 +156,14 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
         ApplyUpgrade(option);
 
         // 포인트 차감
-        PlayerStatsManager.Instance.upgradePoint--;
-        UiManager.Instance.SetUpgradePointText(PlayerStatsManager.Instance.upgradePoint);
+        upgradePoint--;
+        UiManager.Instance.SetUpgradePointText(upgradePoint);
 
         SoundManager.Instance.PlaySound(upgradeSound);
         UiManager.Instance.ShakeUI();
 
         // 포인트가 남아있으면 새로운 옵션 생성, 없으면 창 닫기
-        if (PlayerStatsManager.Instance.upgradePoint > 0)
+        if (upgradePoint > 0)
         {
             GenerateRandomUpgrades();
         }
@@ -282,8 +286,8 @@ public class UpgradeManager : MonoSingleton<UpgradeManager>
 
     public void PointUp(int amount = 1)
     {
-        PlayerStatsManager.Instance.upgradePoint += amount;
-        UiManager.Instance.SetUpgradePointText(PlayerStatsManager.Instance.upgradePoint);
+        upgradePoint += amount;
+        UiManager.Instance.SetUpgradePointText(upgradePoint);
 
         // 이미 업그레이드 화면이 열려있으면 옵션만 갱신
         if (GameManager.Instance.GameState == GameState.OnUpgrade)

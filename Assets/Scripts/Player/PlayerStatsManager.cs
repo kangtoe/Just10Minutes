@@ -8,9 +8,6 @@ public class PlayerStatsManager : MonoSingleton<PlayerStatsManager>
     [Tooltip("StatConfigDatabase SO (필수) - 모든 스탯 설정")]
     [SerializeField] private StatConfigDatabase statDatabase;
 
-    [Header("업그레이드")]
-    public int upgradePoint = 0;
-
     // 내부 Dictionary (모든 스탯 값 저장)
     private Dictionary<UpgradeField, float> stats = new Dictionary<UpgradeField, float>();
 
@@ -220,8 +217,6 @@ public class PlayerStatsManager : MonoSingleton<PlayerStatsManager>
     /// </summary>
     public void ResetStats()
     {
-        upgradePoint = 0;
-
         // 재초기화
         IsInitialized = false;
         if (!Initialize())

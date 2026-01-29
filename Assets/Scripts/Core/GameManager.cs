@@ -110,7 +110,7 @@ public class GameManager : MonoSingleton<GameManager>
             TimeRecordManager.Instance.SetActiveCount(true);
 
             // 게임 시작 시 포인트가 있으면 업그레이드 창 열기 (레벨업과 동일하게 처리)
-            if (PlayerStatsManager.Instance.upgradePoint > 0)
+            if (UpgradeManager.Instance.upgradePoint > 0)
             {
                 UpgradeManager.Instance.PointUp(0); // 0을 넘겨서 포인트 증가 없이 창만 열기
             }
