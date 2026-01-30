@@ -60,12 +60,16 @@ public class PlayerShip : MonoBehaviour
         impactable.TogglePlayerStatsReference(true);
 
         // Shooter의 발사체 데이터를 PlayerStats 값으로 초기화
-        shooter.SetDamage(PlayerStatsManager.Instance.projectileDamage);
-        shooter.SetSpeed(PlayerStatsManager.Instance.projectileSpeed);
-        shooter.SetSize(PlayerStatsManager.Instance.projectileSize);
-        shooter.SetSpread(PlayerStatsManager.Instance.spread);
-        shooter.SetHomingPower(PlayerStatsManager.Instance.homingPower);
-        shooter.SetExplosionDamageRatio(PlayerStatsManager.Instance.explosionDamageRatio);
+        shooter.bulletData.SetStats(
+            damage: PlayerStatsManager.Instance.projectileDamage,
+            speed: PlayerStatsManager.Instance.projectileSpeed,
+            homingPower: PlayerStatsManager.Instance.homingPower,
+            explosionDamageRatio: PlayerStatsManager.Instance.explosionDamageRatio
+        );
+        shooter.SetShooterStats(
+            size: PlayerStatsManager.Instance.projectileSize,
+            spread: PlayerStatsManager.Instance.spread
+        );
 
         // 2. UI 게이지 초기화
         UiManager.Instance.InitializeDurabilityUI();
@@ -143,25 +147,25 @@ public class PlayerShip : MonoBehaviour
                 impactable.SetDamageAmount(PlayerStatsManager.Instance.onImpact);
                 break;
             case UpgradeField.MultiShot:
-                shooter.SetMultiShot(PlayerStatsManager.Instance.multiShot);
+                shooter.SetShooterStats(multiShot: PlayerStatsManager.Instance.multiShot);
                 break;
             case UpgradeField.ProjectileDamage:
-                shooter.SetDamage(PlayerStatsManager.Instance.projectileDamage);
+                shooter.bulletData.SetStats(damage: PlayerStatsManager.Instance.projectileDamage);
                 break;
             case UpgradeField.ProjectileSpeed:
-                shooter.SetSpeed(PlayerStatsManager.Instance.projectileSpeed);
+                shooter.bulletData.SetStats(speed: PlayerStatsManager.Instance.projectileSpeed);
                 break;
             case UpgradeField.ProjectileSize:
-                shooter.SetSize(PlayerStatsManager.Instance.projectileSize);
+                shooter.SetShooterStats(size: PlayerStatsManager.Instance.projectileSize);
                 break;
             case UpgradeField.Spread:
-                shooter.SetSpread(PlayerStatsManager.Instance.spread);
+                shooter.SetShooterStats(spread: PlayerStatsManager.Instance.spread);
                 break;
             case UpgradeField.HomingPower:
-                shooter.SetHomingPower(PlayerStatsManager.Instance.homingPower);
+                shooter.bulletData.SetStats(homingPower: PlayerStatsManager.Instance.homingPower);
                 break;
             case UpgradeField.ExplosionDamageRatio:
-                shooter.SetExplosionDamageRatio(PlayerStatsManager.Instance.explosionDamageRatio);
+                shooter.bulletData.SetStats(explosionDamageRatio: PlayerStatsManager.Instance.explosionDamageRatio);
                 break;
             case UpgradeField.MoveSpeed:
                 moveStandard.SetMovePower(PlayerStatsManager.Instance.moveSpeed);
@@ -199,13 +203,13 @@ public class PlayerShip : MonoBehaviour
 
             // 사격
             case UpgradeField.MultiShot:
-                shooter.SetMultiShot((int)amount);
+                shooter.SetShooterStats(multiShot: (int)amount);
                 break;
             case UpgradeField.ProjectileDamage:
-                shooter.SetDamage((int)amount);
+                shooter.bulletData.SetStats(damage: (int)amount);
                 break;
             case UpgradeField.ProjectileSpeed:
-                shooter.SetSpeed(amount);
+                shooter.bulletData.SetStats(speed: amount);
                 break;
 
             // 이동

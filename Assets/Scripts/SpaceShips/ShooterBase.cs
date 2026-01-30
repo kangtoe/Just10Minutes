@@ -35,7 +35,7 @@ public class ShooterBase : MonoBehaviour
     [Button("Reset Bullet Data to Default")]
     private void ResetBulletDataToDefault()
     {
-        bulletData = BulletData.CreateDefault();
+        bulletData = new BulletData();
     }
 
     [Header("Sounds")]
@@ -60,39 +60,17 @@ public class ShooterBase : MonoBehaviour
         if(!manualFire) TryFire();
     }
 
-    public void SetMultiShot(int amount)
+    /// <summary>
+    /// 슈터 발사 방식을 변경합니다. null인 파라미터는 변경하지 않습니다.
+    /// </summary>
+    public void SetShooterStats(
+        int? multiShot = null,
+        float? spread = null,
+        float? size = null)
     {
-        shotCountPerFirepoint = amount;
-    }
-
-    public void SetDamage(int damage)
-    {
-        bulletData.damage = damage;
-    }
-
-    public void SetSpeed(float speed)
-    {
-        bulletData.speed = speed;
-    }
-
-    public void SetSpread(float spreadAngle)
-    {
-        spread = spreadAngle;
-    }
-
-    public void SetSize(float size)
-    {
-        projectileSize = size;
-    }
-
-    public void SetHomingPower(float homingPower)
-    {
-        bulletData.homingTurnSpeed = homingPower;
-    }
-
-    public void SetExplosionDamageRatio(float ratio)
-    {
-        bulletData.explosionDamageRatio = ratio;
+        if (multiShot.HasValue) shotCountPerFirepoint = multiShot.Value;
+        if (spread.HasValue) this.spread = spread.Value;
+        if (size.HasValue) projectileSize = size.Value;
     }
 
     // 사격 시도

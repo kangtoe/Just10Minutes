@@ -1,136 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-// 발사체 데이터 구조체 (외부 데이터 확장 가능)
-[System.Serializable]
-public struct BulletData
-{
-    [Header("=== Basic Stats ===")]
-    [Tooltip("발사체 데미지")]
-    public int damage;
-    [Tooltip("충돌 시 넉백 힘")]
-    public int impact;
-    [Tooltip("발사체 속도")]
-    public float speed;
-
-    [Header("=== Behavior ===")]
-    [Tooltip("충돌 시 발사체 파괴")]
-    public bool destroyOnHit;
-    [Tooltip("다른 발사체와 충돌 시 제거")]
-    public bool removeOtherBullet;
-
-    [Header("=== Effects & Sounds ===")]
-    [Tooltip("충돌 이펙트 프리팹")]
-    public GameObject hitEffect;
-    [Tooltip("이펙트 범위 데미지 반경 (0 = 단일 타겟)")]
-    public float hitEffectRadius;
-    [Tooltip("폭발 피해 비율 (0 = 비활성화, 0.2 = 원본 피해의 20%를 범위 피해로)")]
-    [Range(0f, 1f)]
-    public float explosionDamageRatio;
-    [Tooltip("충돌 사운드")]
-    public AudioClip onHitSound;
-
-    [Header("=== Transformation System ===")]
-    [Tooltip("변형 시작 시간 (초, -1 = 비활성화)")]
-    public float transformStartTime;
-    [Tooltip("변형 진행 시간 (초, -1 = 비활성화)")]
-    public float transformDuration;
-
-    [Space(5)]
-    [Tooltip("시작 크기 배율")]
-    [Range(0f, 10f)]
-    public float scaleMultiplierStart;
-    [Tooltip("끝 크기 배율")]
-    [Range(0f, 10f)]
-    public float scaleMultiplierEnd;
-
-    [Space(5)]
-    [Tooltip("시작 투명도")]
-    [Range(0f, 1f)]
-    public float alphaStart;
-    [Tooltip("끝 투명도")]
-    [Range(0f, 1f)]
-    public float alphaEnd;
-    [Tooltip("페이드 시작 비율 (0~1)")]
-    [Range(0f, 1f)]
-    public float alphaFadeStartRatio;
-
-    [Space(5)]
-    [Tooltip("끝 데미지 배율 (1.0 = 변화없음)")]
-    [Range(0f, 2f)]
-    public float damageMultiplierEnd;
-    [Tooltip("시작 속도 배율")]
-    [Range(0f, 2f)]
-    public float speedMultiplierStart;
-    [Tooltip("끝 속도 배율")]
-    [Range(0f, 2f)]
-    public float speedMultiplierEnd;
-
-    [Space(5)]
-    [Tooltip("충돌 판정 비활성화 진행도 (1.0 = 비활성화 안함)")]
-    [Range(0f, 1f)]
-    public float colliderDisableThreshold;
-    [Tooltip("변형 완료 시 파괴")]
-    public bool destroyOnComplete;
-    [Tooltip("시작 회전 속도 (도/초)")]
-    public float rotationSpeedStart;
-    [Tooltip("끝 회전 속도 (도/초)")]
-    public float rotationSpeedEnd;
-
-    [Header("=== Homing System ===")]
-    [Tooltip("추적 회전 속도 (0 = 추적 안함)")]
-    public float homingTurnSpeed;
-    [Tooltip("추적 시작 시간 (초)")]
-    public float homingStartTime;
-    [Tooltip("최대 추적 시간 (-1 = 무제한)")]
-    public float homingMaxDuration;
-
-    /// <summary>
-    /// 기본값으로 초기화된 BulletData 생성
-    /// </summary>
-    public static BulletData CreateDefault()
-    {
-        return new BulletData
-        {
-            // Basic Stats
-            damage = 10,
-            impact = 5,
-            speed = 10f,
-
-            // Behavior
-            destroyOnHit = true,
-            removeOtherBullet = false,
-
-            // Effects & Sounds
-            hitEffect = null,
-            hitEffectRadius = 0f,
-            explosionDamageRatio = 0f,
-            onHitSound = null,
-
-            // Transformation System (비활성화)
-            transformStartTime = 0f,
-            transformDuration = -1f,
-            scaleMultiplierStart = 1f,
-            scaleMultiplierEnd = 1f,
-            alphaStart = 1f,
-            alphaEnd = 1f,
-            alphaFadeStartRatio = 0f,
-            damageMultiplierEnd = 1f,
-            speedMultiplierStart = 1f,
-            speedMultiplierEnd = 1f,
-            colliderDisableThreshold = 1f,
-            destroyOnComplete = true,
-            rotationSpeedStart = 0f,
-            rotationSpeedEnd = 0f,
-
-            // Homing System (비활성화)
-            homingTurnSpeed = 0f,
-            homingStartTime = 0f,
-            homingMaxDuration = -1f
-        };
-    }
-}
+using NaughtyAttributes;
 
 // 탄환이 사라지는 조건 3가지
 // 1. 생성 후 일정 시간이 경과.
@@ -146,7 +17,7 @@ public class BulletBase : MonoBehaviour
 
     // 런타임 설정 (Shooter에서 전달)
     int ownerLayer;
-    public LayerMask targetLayer; // 해당 오브젝트와 충돌을 검사할 레이어
+    [SerializeField,ReadOnly] LayerMask targetLayer; // 해당 오브젝트와 충돌을 검사할 레이어
 
     float spwanedTime = 0;
 
@@ -455,7 +326,17 @@ public class BulletBase : MonoBehaviour
         //Debug.Log("init");
         this.ownerLayer = ownerLayer;
         this.targetLayer = targetLayer;
+
+        // 기존 참조 타입 백업 (프리팹에 설정된 값)
+        GameObject existingHitEffect = this.bulletData.hitEffect;
+        AudioClip existingOnHitSound = this.bulletData.onHitSound;
+
+        // 전체 데이터 할당
         this.bulletData = data;
+
+        // null이면 프리팹의 기존 값 복원
+        if (data.hitEffect == null) this.bulletData.hitEffect = existingHitEffect;
+        if (data.onHitSound == null) this.bulletData.onHitSound = existingOnHitSound;
 
         // 변형 시스템용 초기값 저장
         initialDamage = bulletData.damage;
