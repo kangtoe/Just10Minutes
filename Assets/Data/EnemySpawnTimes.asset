@@ -52,3 +52,4 @@ MonoBehaviour:
   - enemyPrefab: {fileID: 6078006324994066098, guid: 83b513a659d9bdb4cb891d2a3a34fdab, type: 3}
     spawnTime: 600
     despawnTime: -1
+  enemyMaterial: {fileID: 2100000, guid: 5529a49c693c16d4493964c3601fbf95, type: 2}

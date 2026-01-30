@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using NaughtyAttributes;
 
 /// <summary>
 /// 적 스폰 시간 정보를 저장하는 단일 항목
@@ -38,6 +39,10 @@ public class EnemySpawnTimesSO : ScriptableObject
     [Tooltip("모든 적의 스폰 시간 정보 (Inspector에서 직접 편집)")]
     public List<EnemySpawnTimeData> spawnTimes = new List<EnemySpawnTimeData>();
 
+    [Header("=== Material Settings ===")]
+    [Tooltip("적용할 Material (점멸 효과용)")]
+    public Material enemyMaterial;
+
     /// <summary>
     /// EnemyTimeRange 배열로 변환
     /// </summary>
@@ -67,6 +72,44 @@ public class EnemySpawnTimesSO : ScriptableObject
     }
 
 #if UNITY_EDITOR
+    /// <summary>
+    /// 에디터 전용: 모든 적 프리팹에 Material 일괄 적용
+    /// </summary>
+    [Button("Apply Material to All Enemies")]
+    private void ApplyMaterialToAllEnemies()
+    {
+        if (enemyMaterial == null)
+        {
+            Debug.LogError("[EnemySpawnTimesSO] Enemy Material is not assigned!");
+            return;
+        }
+
+        int count = 0;
+        int totalEntries = 0;
+        foreach (var data in spawnTimes)
+        {
+            if (data != null && data.enemyPrefab != null)
+            {
+                totalEntries++;
+                SpriteRenderer spriteRenderer = data.enemyPrefab.GetComponentInChildren<SpriteRenderer>();
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.sharedMaterial = enemyMaterial;
+                    UnityEditor.EditorUtility.SetDirty(data.enemyPrefab.gameObject);
+                    count++;
+                    Debug.Log($"[EnemySpawnTimesSO] Applied material to {data.enemyPrefab.name}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[EnemySpawnTimesSO] No SpriteRenderer found in {data.enemyPrefab.name}");
+                }
+            }
+        }
+
+        UnityEditor.EditorUtility.SetDirty(this);
+        Debug.Log($"[EnemySpawnTimesSO] Applied Material to {count}/{totalEntries} enemy prefabs");
+    }
+
     /// <summary>
     /// 에디터 전용: 스폰 시간 순서로 정렬
     /// </summary>

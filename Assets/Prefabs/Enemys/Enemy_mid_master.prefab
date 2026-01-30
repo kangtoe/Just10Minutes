@@ -91,7 +91,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9b016e220c0048446bb17b82cc2ba00c, type: 2}
+  - {fileID: 2100000, guid: 5529a49c693c16d4493964c3601fbf95, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -342,6 +342,9 @@ MonoBehaviour:
   onDead:
     m_PersistentCalls:
       m_Calls: []
+  onKilled:
+    m_PersistentCalls:
+      m_Calls: []
   onDamaged:
     m_PersistentCalls:
       m_Calls: []
@@ -365,6 +368,9 @@ MonoBehaviour:
   currShield: 0
   shieldRegenRate: 20
   shieldRegenDelay: 2
+  enableHitFlash: 1
+  flashDuration: 0.1
+  flashCount: 3
   deathSound: {fileID: 0}
   hitSound: {fileID: 0}
   shieldHitSound: {fileID: 0}
@@ -383,7 +389,7 @@ MonoBehaviour:
   targetLayer:
     serializedVersion: 2
     m_Bits: 128
-  searchRaduius: 20
+  searchRadius: 20
   anglePriority: 0
   findAlways: 0
   target: {fileID: 0}
@@ -439,13 +445,38 @@ MonoBehaviour:
   intervalY: 0.2
   outsideSlower: 0
   projectilePrefab: {fileID: 3425549393640425885, guid: 7aafadacb57669a4ca2fb3e2c1d6964a, type: 3}
-  damage: 25
-  impactPower: 5
-  projectileMovePower: 10
-  projectileLiveTime: 3
+  bulletData:
+    damage: 0
+    speed: 0
+    knockback: 0
+    explosionDamageRatio: 0
+    explosionRadius: 0
+    impact: 0
+    destroyOnHit: 0
+    removeOtherBullet: 0
+    hitEffect: {fileID: 0}
+    onHitSound: {fileID: 0}
+    transformStartTime: 0
+    transformDuration: 0
+    scaleMultiplierStart: 0
+    scaleMultiplierEnd: 0
+    alphaStart: 0
+    alphaEnd: 0
+    alphaFadeStartRatio: 0
+    damageMultiplierEnd: 0
+    speedMultiplierStart: 0
+    speedMultiplierEnd: 0
+    colliderDisableThreshold: 0
+    destroyOnComplete: 0
+    rotationSpeedStart: 0
+    rotationSpeedEnd: 0
+    homingTurnSpeed: 0
+    homingStartTime: 0
+    homingMaxDuration: 0
   createBulletAsChild: 0
+  spread: 0
+  projectileSize: 1
   shootSound: {fileID: 0}
-  onHitSound: {fileID: 0}
 --- !u!1 &9068956070446894997
 GameObject:
   m_ObjectHideFlags: 0
@@ -544,6 +575,9 @@ MonoBehaviour:
   onDead:
     m_PersistentCalls:
       m_Calls: []
+  onKilled:
+    m_PersistentCalls:
+      m_Calls: []
   onDamaged:
     m_PersistentCalls:
       m_Calls: []
@@ -567,6 +601,9 @@ MonoBehaviour:
   currShield: 0
   shieldRegenRate: 20
   shieldRegenDelay: 2
+  enableHitFlash: 1
+  flashDuration: 0.1
+  flashCount: 3
   deathSound: {fileID: 0}
   hitSound: {fileID: 0}
   shieldHitSound: {fileID: 0}
@@ -603,7 +640,7 @@ MonoBehaviour:
   targetLayer:
     serializedVersion: 2
     m_Bits: 128
-  searchRaduius: 20
+  searchRadius: 20
   anglePriority: 0
   findAlways: 0
   target: {fileID: 0}
