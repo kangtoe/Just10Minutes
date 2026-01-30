@@ -281,7 +281,7 @@ public class BulletBase : MonoBehaviour
 
                 // 이펙트 크기를 폭발 반지름에 맞춰 조정
                 GameObject effect = Instantiate(bulletData.hitEffect, point, transform.rotation);
-                float effectScale = bulletData.explosionRadius / 2f; // 기본 이펙트 크기가 반지름 2 기준
+                float effectScale = bulletData.explosionRadius; // 기본 이펙트 크기가 반지름 1 기준
                 effect.transform.localScale = Vector3.one * effectScale;
 
                 // 폭발 피해 적용 후에도 직접 충돌 피해는 아래에서 처리됨
